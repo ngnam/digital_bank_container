@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 import '../../domain/entities/user_entity.dart';
-import '../../domain/entities/session_entity.dart';
 import '../../domain/usecases/login_with_password.dart';
 import '../../domain/usecases/login_with_otp.dart';
 import '../../domain/usecases/enable_biometric.dart';
@@ -8,6 +7,7 @@ import '../../domain/usecases/disable_biometric.dart';
 import '../../domain/usecases/get_trusted_devices.dart';
 import '../../domain/usecases/register_device.dart';
 import '../../domain/usecases/remove_device.dart';
+import '../../data/datasources/auth_remote_datasource.dart';
 
 part 'auth_state.dart';
 
@@ -19,6 +19,7 @@ class AuthCubit extends Cubit<AuthState> {
   final GetTrustedDevices getTrustedDevices;
   final RegisterDevice registerDevice;
   final RemoveDevice removeDevice;
+  final AuthRemoteDataSource remote;
 
   AuthCubit({
     required this.loginWithPassword,
@@ -28,23 +29,39 @@ class AuthCubit extends Cubit<AuthState> {
     required this.getTrustedDevices,
     required this.registerDevice,
     required this.removeDevice,
+    required this.remote,
   }) : super(AuthInitial());
 
   Future<void> login(String phone, String password) async {
     emit(AuthLoading());
     try {
-      final session = await loginWithPassword(phone, password);
-      emit(AuthAuthenticated(session));
+      await loginWithPassword(phone, password);
+      final user = await remote.fetchUser();
+      emit(AuthAuthenticated(user));
     } catch (e) {
       emit(AuthError('Login failed'));
     }
+  }
+  void lockSession() {
+    emit(AuthLocked());
+  }
+
+  Future<void> unlockWithBiometric() async {
+    emit(AuthLoading());
+    final user = await remote.fetchUser();
+    emit(AuthUnlocked(user));
+  }
+
+  void logout() {
+    emit(AuthInitial());
   }
 
   Future<void> loginOtp(String phone, String otp) async {
     emit(AuthLoading());
     try {
-      final session = await loginWithOtp(phone, otp);
-      emit(AuthAuthenticated(session));
+      await loginWithOtp(phone, otp);
+      final user = await remote.fetchUser();
+      emit(AuthAuthenticated(user));
     } catch (e) {
       emit(AuthError('OTP login failed'));
     }

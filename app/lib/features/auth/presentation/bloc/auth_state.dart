@@ -5,8 +5,13 @@ abstract class AuthState {}
 class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 class AuthAuthenticated extends AuthState {
-  final SessionEntity session;
-  AuthAuthenticated(this.session);
+  final UserEntity user;
+  AuthAuthenticated(this.user);
+}
+class AuthLocked extends AuthState {}
+class AuthUnlocked extends AuthState {
+  final UserEntity user;
+  AuthUnlocked(this.user);
 }
 class AuthError extends AuthState {
   final String message;
