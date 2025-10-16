@@ -80,8 +80,16 @@ class _AccountsNavState extends State<AccountsNav> {
     } else {
       body = const Center(child: Text('Select an account'));
     }
-    return BlocProvider<AccountListCubit>(
-      create: (_) => AccountListCubit(GetAccounts(_repo)),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AccountListCubit>(
+          create: (_) => AccountListCubit(GetAccounts(_repo)),
+        ),
+        if (_selectedIndex == 2 && _selectedAccountId != null)
+          BlocProvider<TransactionHistoryCubit>(
+            create: (_) => TransactionHistoryCubit(_getTransactions),
+          ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Accounts Navigation'),
@@ -90,9 +98,7 @@ class _AccountsNavState extends State<AccountsNav> {
               icon: const Icon(Icons.logout),
               tooltip: 'Logout',
               onPressed: () {
-                // Call logout and return to login
                 Navigator.of(context).popUntil((route) => route.isFirst);
-                // Use AuthCubit to logout
                 try {
                   BlocProvider.of<AuthCubit>(context).logout();
                 } catch (_) {}
