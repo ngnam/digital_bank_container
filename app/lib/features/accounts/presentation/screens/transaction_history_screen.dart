@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/transaction_history_cubit.dart';
-import '../bloc/transaction_history_state.dart';
 import '../../domain/entities/transaction_entity.dart';
+import '../../domain/usecases/get_transactions.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   final int accountId;
-  const TransactionHistoryScreen({Key? key, required this.accountId}) : super(key: key);
+  final GetTransactions getTransactions;
+  const TransactionHistoryScreen({super.key, required this.accountId, required this.getTransactions});
 
   @override
   State<TransactionHistoryScreen> createState() => _TransactionHistoryScreenState();
@@ -16,7 +17,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   final ScrollController _scrollController = ScrollController();
   int _page = 1;
   final int _pageSize = 20;
-  List<TransactionEntity> _transactions = [];
+  final List<TransactionEntity> _transactions = [];
   bool _isLoading = false;
   bool _hasMore = true;
 
@@ -59,7 +60,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TransactionHistoryCubit(context.read()),
+      create: (context) => TransactionHistoryCubit(widget.getTransactions),
       child: Scaffold(
         appBar: AppBar(title: const Text('Transaction History')),
         body: ListView.builder(
@@ -70,8 +71,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               final tx = _transactions[index];
               return ListTile(
                 title: Text(tx.description),
-                subtitle: Text('${tx.date} - ${tx.amount}'),
-                trailing: tx.isOffline ? const Icon(Icons.cloud_off, color: Colors.orange) : null,
+                subtitle: Text('${tx.timestamp} - ${tx.amount}'),
               );
             } else {
               return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));

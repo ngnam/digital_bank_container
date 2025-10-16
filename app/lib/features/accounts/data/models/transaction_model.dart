@@ -2,18 +2,12 @@ import '../../domain/entities/transaction_entity.dart';
 
 class TransactionModel extends TransactionEntity {
   TransactionModel({
-    required int id,
-    required String type,
-    required double amount,
-    required String description,
-    required DateTime timestamp,
-  }) : super(
-          id: id,
-          type: type,
-          amount: amount,
-          description: description,
-          timestamp: timestamp,
-        );
+    required super.id,
+    required super.type,
+    required super.amount,
+    required super.description,
+    required super.timestamp,
+  });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) => TransactionModel(
         id: json['id'],

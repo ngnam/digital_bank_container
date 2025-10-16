@@ -3,8 +3,6 @@ import '../../domain/entities/transaction_entity.dart';
 import '../../domain/repositories/account_repository.dart';
 import '../datasources/account_remote_datasource.dart';
 import '../datasources/account_local_datasource.dart';
-import '../models/account_model.dart';
-import '../models/transaction_model.dart';
 
 class AccountRepositoryImpl implements AccountRepository {
   final AccountRemoteDataSource remote;

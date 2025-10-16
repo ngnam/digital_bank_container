@@ -11,7 +11,7 @@ class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
   Future<void> fetchTransactions(int accountId, {int page = 1, int pageSize = 20}) async {
     emit(TransactionHistoryLoading());
     try {
-      final transactions = await getTransactions(accountId, page: page, pageSize: pageSize);
+      final transactions = await getTransactions(accountId, page: page, size: pageSize);
       emit(TransactionHistoryLoaded(transactions));
     } catch (e) {
       emit(TransactionHistoryError('Failed to load transactions'));

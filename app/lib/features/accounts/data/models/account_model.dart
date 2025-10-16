@@ -2,20 +2,13 @@ import '../../domain/entities/account_entity.dart';
 
 class AccountModel extends AccountEntity {
   AccountModel({
-    required int id,
-    required String accountNumber,
-    required String ownerName,
-    required String currency,
-    double? balance,
-    DateTime? updatedAt,
-  }) : super(
-          id: id,
-          accountNumber: accountNumber,
-          ownerName: ownerName,
-          currency: currency,
-          balance: balance,
-          updatedAt: updatedAt,
-        );
+    required super.id,
+    required super.accountNumber,
+    required super.ownerName,
+    required super.currency,
+    super.balance,
+    super.updatedAt,
+  });
 
   factory AccountModel.fromJson(Map<String, dynamic> json) => AccountModel(
         id: json['id'],

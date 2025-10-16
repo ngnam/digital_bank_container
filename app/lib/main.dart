@@ -5,7 +5,6 @@ import 'features/auth/domain/entities/user_entity.dart';
 import 'features/auth/presentation/services/session_lock_service.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/lock_screen.dart';
-import 'features/auth/presentation/screens/home_screen.dart';
 import 'features/auth/domain/usecases/login_with_password.dart';
 import 'features/auth/domain/usecases/login_with_otp.dart';
 import 'features/auth/domain/usecases/enable_biometric.dart';
@@ -17,6 +16,7 @@ import 'features/auth/data/datasources/auth_local_datasource.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'features/accounts/presentation/screens/accounts_nav.dart';
 
 void main() {
   runApp(const RootApp());
@@ -108,7 +108,7 @@ class _AuthNavState extends State<AuthNav> {
                 onUnlock: () => context.read<AuthCubit>().unlockWithBiometric(),
               )
             : (_user != null
-                ? HomeScreen(user: _user!, onLogout: () => context.read<AuthCubit>().logout())
+                ? const AccountsNav()
                 : const LoginScreen()),
       ),
     );

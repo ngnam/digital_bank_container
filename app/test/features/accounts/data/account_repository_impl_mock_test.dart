@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app/features/accounts/data/repositories/account_repository_impl.dart';
-import 'package:app/features/accounts/data/datasources/account_remote_datasource.dart';
 import 'package:app/features/accounts/data/datasources/account_local_db.dart';
 import 'package:app/features/accounts/data/cache/account_cache.dart';
 import 'package:app/features/accounts/domain/entities/account_entity.dart';

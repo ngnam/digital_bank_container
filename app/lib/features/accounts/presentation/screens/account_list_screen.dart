@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/account_list_cubit.dart';
-import '../bloc/account_list_state.dart';
 import '../../domain/entities/account_entity.dart';
 
 class AccountListScreen extends StatelessWidget {
   final void Function(AccountEntity) onAccountTap;
   final VoidCallback? onRefresh;
-  const AccountListScreen({Key? key, required this.onAccountTap, this.onRefresh}) : super(key: key);
+  const AccountListScreen({super.key, required this.onAccountTap, this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +24,8 @@ class AccountListScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final account = state.accounts[index];
                   return ListTile(
-                    title: Text(account.name),
-                    subtitle: Text('Balance: ${account.balance}'),
-                    trailing: account.isOffline ? const Icon(Icons.cloud_off, color: Colors.orange) : null,
+                    title: Text(account.ownerName),
+                    subtitle: Text('Balance: ${account.balance ?? 0}'),
                     onTap: () => onAccountTap(account),
                   );
                 },

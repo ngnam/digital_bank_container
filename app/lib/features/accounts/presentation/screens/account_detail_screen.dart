@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/account_detail_cubit.dart';
-import '../bloc/account_detail_state.dart';
-import '../../domain/entities/account_entity.dart';
+import '../../domain/usecases/get_account_detail.dart';
 
 class AccountDetailScreen extends StatelessWidget {
   final int accountId;
   final void Function(int) onViewTransactions;
-  const AccountDetailScreen({Key? key, required this.accountId, required this.onViewTransactions}) : super(key: key);
+  final GetAccountDetail getAccountDetail;
+  const AccountDetailScreen({super.key, required this.accountId, required this.onViewTransactions, required this.getAccountDetail});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AccountDetailCubit(context.read())..fetchDetail(accountId),
+      create: (context) => AccountDetailCubit(getAccountDetail)..fetchDetail(accountId),
       child: Scaffold(
         appBar: AppBar(title: const Text('Account Detail')),
         body: BlocBuilder<AccountDetailCubit, AccountDetailState>(
@@ -25,8 +25,8 @@ class AccountDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
-                    title: Text(account.name),
-                    subtitle: Text('Balance: ${account.balance}'),
+                    title: Text(account.ownerName),
+                    subtitle: Text('Balance: ${account.balance ?? 0}'),
                   ),
                   ListTile(
                     title: const Text('Account Number'),
