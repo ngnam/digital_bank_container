@@ -17,6 +17,9 @@ import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'features/accounts/presentation/screens/accounts_nav.dart';
+import 'features/payments/data/payment_local_db_impl.dart';
+import 'features/payments/data/payment_repository.dart';
+import 'package:dio/dio.dart';
 
 void main() {
   runApp(const RootApp());
@@ -46,7 +49,7 @@ class RootApp extends StatelessWidget {
           ),
         ),
       ],
-      child: const MaterialApp(
+        child: const MaterialApp(
         debugShowCheckedModeBanner: false,
         home: AuthNav(),
       ),
@@ -65,6 +68,8 @@ class _AuthNavState extends State<AuthNav> {
   UserEntity? _user;
   bool _locked = false;
   late final SessionLockService _lockService;
+  late final PaymentLocalDbImpl _sharedPaymentDb;
+  late final MockPaymentRepository _sharedPaymentRepo;
 
   @override
   void initState() {
@@ -74,6 +79,9 @@ class _AuthNavState extends State<AuthNav> {
         context.read<AuthCubit>().lockSession();
       };
     _lockService.start();
+    // shared payments instances
+    _sharedPaymentDb = PaymentLocalDbImpl();
+    _sharedPaymentRepo = MockPaymentRepository(Dio(), localDb: _sharedPaymentDb);
   }
 
   void _resetLockTimer() {
@@ -108,7 +116,7 @@ class _AuthNavState extends State<AuthNav> {
                 onUnlock: () => context.read<AuthCubit>().unlockWithBiometric(),
               )
             : (_user != null
-                ? const AccountsNav()
+                ? AccountsNav(paymentRepository: _sharedPaymentRepo)
                 : const LoginScreen()),
       ),
     );

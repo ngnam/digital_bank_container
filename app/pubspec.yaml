@@ -42,6 +42,7 @@ dependencies:
   intl: ^0.18.1
   local_auth: ^2.3.0
   sqflite: ^2.3.0
+  connectivity_plus: ^4.0.0
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 

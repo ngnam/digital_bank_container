@@ -12,9 +12,16 @@ import '../../data/datasources/dummy_account_local_datasource.dart';
 import '../bloc/account_list_cubit.dart';
 import '../../domain/usecases/get_accounts.dart';
 import '../bloc/transaction_history_cubit.dart';
+import 'package:dio/dio.dart';
+import '../../../payments/data/payment_repository.dart';
+import '../../../payments/presentation/screens/payment_form_screen.dart';
+import '../../../payments/data/payment_local_db_impl.dart';
+import '../../../payments/presentation/screens/template_list_screen.dart';
+import '../../../payments/presentation/screens/schedule_list_screen.dart';
 
 class AccountsNav extends StatefulWidget {
-  const AccountsNav({super.key});
+  final dynamic paymentRepository;
+  const AccountsNav({super.key, this.paymentRepository});
 
   @override
   State<AccountsNav> createState() => _AccountsNavState();
@@ -95,6 +102,14 @@ class _AccountsNavState extends State<AccountsNav> {
           title: const Text('Accounts Navigation'),
           actions: [
             IconButton(
+              icon: const Icon(Icons.payment),
+              tooltip: 'Payments',
+              onPressed: () {
+                // Open a small payments menu
+                Navigator.push(context, MaterialPageRoute(builder: (_) => _PaymentsMenu(repository: widget.paymentRepository)));
+              },
+            ),
+            IconButton(
               icon: const Icon(Icons.logout),
               tooltip: 'Logout',
               onPressed: () {
@@ -125,6 +140,46 @@ class _AccountsNavState extends State<AccountsNav> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _PaymentsMenu extends StatelessWidget {
+  final dynamic repository;
+  const _PaymentsMenu({super.key, this.repository});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Payments')),
+      body: ListView(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.payments),
+            title: const Text('New Payment'),
+            onTap: () {
+              final repo = repository ?? MockPaymentRepository(Dio());
+              Navigator.push(context, MaterialPageRoute(builder: (_) => PaymentFormScreen(repository: repo)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.list),
+            title: const Text('Templates'),
+            onTap: () {
+              final repo = repository ?? MockPaymentRepository(Dio(), localDb: PaymentLocalDbImpl());
+              Navigator.push(context, MaterialPageRoute(builder: (_) => TemplateListScreen(repository: repo)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.schedule),
+            title: const Text('Schedules'),
+            onTap: () {
+              final repo = repository ?? MockPaymentRepository(Dio(), localDb: PaymentLocalDbImpl());
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ScheduleListScreen(repository: repo)));
+            },
+          ),
+        ],
       ),
     );
   }
