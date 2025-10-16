@@ -10,6 +10,8 @@ class AccountListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Gọi fetchAccounts khi widget build
+    context.read<AccountListCubit>().fetchAccounts();
     return Scaffold(
       appBar: AppBar(title: const Text('Accounts')),
       body: BlocBuilder<AccountListCubit, AccountListState>(
