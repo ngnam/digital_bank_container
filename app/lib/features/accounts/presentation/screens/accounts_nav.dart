@@ -11,6 +11,7 @@ import '../../data/datasources/account_remote_datasource.dart';
 import '../../data/datasources/dummy_account_local_datasource.dart';
 import '../bloc/account_list_cubit.dart';
 import '../../domain/usecases/get_accounts.dart';
+import '../bloc/transaction_history_cubit.dart';
 
 class AccountsNav extends StatefulWidget {
   const AccountsNav({super.key});
@@ -69,9 +70,12 @@ class _AccountsNavState extends State<AccountsNav> {
         getAccountDetail: _getAccountDetail,
       );
     } else if (_selectedIndex == 2 && _selectedAccountId != null) {
-      body = TransactionHistoryScreen(
-        accountId: _selectedAccountId!,
-        getTransactions: _getTransactions,
+      body = BlocProvider<TransactionHistoryCubit>(
+        create: (_) => TransactionHistoryCubit(_getTransactions),
+        child: TransactionHistoryScreen(
+          accountId: _selectedAccountId!,
+          getTransactions: _getTransactions,
+        ),
       );
     } else {
       body = const Center(child: Text('Select an account'));

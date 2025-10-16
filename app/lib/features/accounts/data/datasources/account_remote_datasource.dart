@@ -22,11 +22,11 @@ class MockAccountRemoteDataSource implements AccountRemoteDataSource {
   Future<AccountModel> getAccountDetail(int id, {String? ifNoneMatch, String? ifModifiedSince}) async {
     // Mock chi tiết theo id
     if (id == 1) {
-      return AccountModel(id: 1, accountNumber: '123456789', ownerName: 'Nguyen Van A', currency: 'VND', balance: 1000000, updatedAt: DateTime.now());
+      return AccountModel(id: 1, accountNumber: '123456789', ownerName: 'Nguyen Van A', currency: 'VND', balance: 1000000000, updatedAt: DateTime.now());
     } else if (id == 2) {
-      return AccountModel(id: 2, accountNumber: '987654321', ownerName: 'Tran Thi B', currency: 'USD', balance: 5000, updatedAt: DateTime.now());
+      return AccountModel(id: 2, accountNumber: '987654321', ownerName: 'Tran Thi B', currency: 'USD', balance: 50000, updatedAt: DateTime.now());
     } else {
-      return AccountModel(id: 3, accountNumber: '555666777', ownerName: 'Le Van C', currency: 'EUR', balance: 1200.5, updatedAt: DateTime.now());
+      return AccountModel(id: 3, accountNumber: '555666777', ownerName: 'Le Van C', currency: 'EUR', balance: 12200.5, updatedAt: DateTime.now());
     }
   }
 

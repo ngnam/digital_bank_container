@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/account_detail_cubit.dart';
 import '../../domain/usecases/get_account_detail.dart';
+import 'package:intl/intl.dart';
 
 class AccountDetailScreen extends StatelessWidget {
   final int accountId;
@@ -26,7 +27,10 @@ class AccountDetailScreen extends StatelessWidget {
                 children: [
                   ListTile(
                     title: Text(account.ownerName),
-                    subtitle: Text('Balance: ${account.balance ?? 0}'),
+                    subtitle: Text(
+                      'Balance: ${NumberFormat('#,##0.00').format(account.balance ?? 0)}${account.currency == 'VND' ? ' đ' : ' ${account.currency}'}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                    ),
                   ),
                   ListTile(
                     title: const Text('Account Number'),
