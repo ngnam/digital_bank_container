@@ -9,6 +9,8 @@ import '../../domain/usecases/get_account_detail.dart';
 import '../../domain/usecases/get_transactions.dart';
 import '../../data/datasources/account_remote_datasource.dart';
 import '../../data/datasources/dummy_account_local_datasource.dart';
+import '../bloc/account_list_cubit.dart';
+import '../../domain/usecases/get_accounts.dart';
 
 class AccountsNav extends StatefulWidget {
   const AccountsNav({super.key});
@@ -74,42 +76,45 @@ class _AccountsNavState extends State<AccountsNav> {
     } else {
       body = const Center(child: Text('Select an account'));
     }
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Accounts Navigation'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () {
-              // Call logout and return to login
-              Navigator.of(context).popUntil((route) => route.isFirst);
-              // Use AuthCubit to logout
-              try {
-                BlocProvider.of<AuthCubit>(context).logout();
-              } catch (_) {}
-            },
-          ),
-        ],
-      ),
-      body: body,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Accounts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_box),
-            label: 'Detail',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Transactions',
-          ),
-        ],
+    return BlocProvider<AccountListCubit>(
+      create: (_) => AccountListCubit(GetAccounts(_repo)),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Accounts Navigation'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+              onPressed: () {
+                // Call logout and return to login
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                // Use AuthCubit to logout
+                try {
+                  BlocProvider.of<AuthCubit>(context).logout();
+                } catch (_) {}
+              },
+            ),
+          ],
+        ),
+        body: body,
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.list),
+              label: 'Accounts',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_box),
+              label: 'Detail',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history),
+              label: 'Transactions',
+            ),
+          ],
+        ),
       ),
     );
   }
