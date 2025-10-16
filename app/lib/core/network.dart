@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:dio/io.dart';
 
 class DioClient {
   final Dio dio;
@@ -16,7 +15,7 @@ class DioClient {
 
   static Future<HttpClientAdapter> _createPinnedAdapter() async {
     // TODO: Implement certificate pinning logic here
-    // For demo, return default adapter
+    // For demo, return default adapter from dio/io.dart
     return IOHttpClientAdapter();
   }
 }

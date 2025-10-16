@@ -23,10 +23,10 @@ class TransactionLocalDbImpl implements TransactionLocalDb {
           CREATE TABLE transactions (
             id INTEGER PRIMARY KEY,
             accountId INTEGER,
+            type TEXT,
             description TEXT,
             amount REAL,
-            date TEXT,
-            isOffline INTEGER
+            timestamp TEXT
           )
         ''');
       },
@@ -46,11 +46,10 @@ class TransactionLocalDbImpl implements TransactionLocalDb {
     );
     return maps.map((e) => TransactionEntity(
       id: e['id'] as int,
-      accountId: e['accountId'] as int,
+      type: e['type'] as String,
+      amount: (e['amount'] as num).toDouble(),
       description: e['description'] as String,
-      amount: e['amount'] as double,
-      date: e['date'] as String,
-      isOffline: (e['isOffline'] as int) == 1,
+      timestamp: DateTime.parse(e['timestamp'] as String),
     )).toList();
   }
 
@@ -61,11 +60,11 @@ class TransactionLocalDbImpl implements TransactionLocalDb {
     for (final tx in transactions) {
       batch.insert('transactions', {
         'id': tx.id,
-        'accountId': tx.accountId,
+        'accountId': accountId,
+        'type': tx.type,
         'description': tx.description,
         'amount': tx.amount,
-        'date': tx.date,
-        'isOffline': tx.isOffline ? 1 : 0,
+        'timestamp': tx.timestamp.toIso8601String(),
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);

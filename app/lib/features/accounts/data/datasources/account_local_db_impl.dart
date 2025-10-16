@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+// removed unused model imports
 import '../../domain/entities/account_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import 'account_local_db.dart';
@@ -23,20 +24,21 @@ class AccountLocalDbImpl implements AccountLocalDb {
         await db.execute('''
           CREATE TABLE accounts (
             id INTEGER PRIMARY KEY,
-            name TEXT,
+            ownerName TEXT,
+            currency TEXT,
             accountNumber TEXT,
             balance REAL,
-            isOffline INTEGER
+            updatedAt TEXT
           )
         ''');
         await db.execute('''
           CREATE TABLE transactions (
             id INTEGER PRIMARY KEY,
             accountId INTEGER,
-            description TEXT,
+            type TEXT,
             amount REAL,
-            date TEXT,
-            isOffline INTEGER
+            description TEXT,
+            timestamp TEXT
           )
         ''');
       },
@@ -49,10 +51,11 @@ class AccountLocalDbImpl implements AccountLocalDb {
     final maps = await db.query('accounts');
     return maps.map((e) => AccountEntity(
       id: e['id'] as int,
-      name: e['name'] as String,
+      ownerName: e['ownerName'] as String,
+      currency: e['currency'] as String,
       accountNumber: e['accountNumber'] as String,
-      balance: e['balance'] as double,
-      isOffline: (e['isOffline'] as int) == 1,
+      balance: e['balance'] != null ? (e['balance'] as num).toDouble() : null,
+      updatedAt: e['updatedAt'] != null ? DateTime.parse(e['updatedAt'] as String) : null,
     )).toList();
   }
 
@@ -63,10 +66,11 @@ class AccountLocalDbImpl implements AccountLocalDb {
     for (final acc in accounts) {
       batch.insert('accounts', {
         'id': acc.id,
-        'name': acc.name,
+        'ownerName': acc.ownerName,
+        'currency': acc.currency,
         'accountNumber': acc.accountNumber,
         'balance': acc.balance,
-        'isOffline': acc.isOffline ? 1 : 0,
+        'updatedAt': acc.updatedAt?.toIso8601String(),
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
@@ -80,10 +84,11 @@ class AccountLocalDbImpl implements AccountLocalDb {
     final e = maps.first;
     return AccountEntity(
       id: e['id'] as int,
-      name: e['name'] as String,
+      ownerName: e['ownerName'] as String,
+      currency: e['currency'] as String,
       accountNumber: e['accountNumber'] as String,
-      balance: e['balance'] as double,
-      isOffline: (e['isOffline'] as int) == 1,
+      balance: e['balance'] != null ? (e['balance'] as num).toDouble() : null,
+      updatedAt: e['updatedAt'] != null ? DateTime.parse(e['updatedAt'] as String) : null,
     );
   }
 
@@ -92,10 +97,11 @@ class AccountLocalDbImpl implements AccountLocalDb {
     final db = await database;
     await db.insert('accounts', {
       'id': account.id,
-      'name': account.name,
+      'ownerName': account.ownerName,
+      'currency': account.currency,
       'accountNumber': account.accountNumber,
       'balance': account.balance,
-      'isOffline': account.isOffline ? 1 : 0,
+      'updatedAt': account.updatedAt?.toIso8601String(),
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -108,15 +114,14 @@ class AccountLocalDbImpl implements AccountLocalDb {
       whereArgs: [accountId],
       limit: pageSize,
       offset: (page - 1) * pageSize,
-      orderBy: 'date DESC',
+      orderBy: 'timestamp DESC',
     );
     return maps.map((e) => TransactionEntity(
       id: e['id'] as int,
-      accountId: e['accountId'] as int,
+      type: e['type'] as String,
+      amount: e['amount'] != null ? (e['amount'] as num).toDouble() : 0.0,
       description: e['description'] as String,
-      amount: e['amount'] as double,
-      date: e['date'] as String,
-      isOffline: (e['isOffline'] as int) == 1,
+      timestamp: e['timestamp'] != null ? DateTime.parse(e['timestamp'] as String) : DateTime.now(),
     )).toList();
   }
 
@@ -127,11 +132,11 @@ class AccountLocalDbImpl implements AccountLocalDb {
     for (final tx in transactions) {
       batch.insert('transactions', {
         'id': tx.id,
-        'accountId': tx.accountId,
+        'accountId': accountId,
+        'type': tx.type,
         'description': tx.description,
         'amount': tx.amount,
-        'date': tx.date,
-        'isOffline': tx.isOffline ? 1 : 0,
+        'timestamp': tx.timestamp.toIso8601String(),
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
