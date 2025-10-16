@@ -6,7 +6,9 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import android.view.WindowManager
 
-class MainActivity: FlutterActivity() {
+import io.flutter.embedding.android.FlutterFragmentActivity
+
+class MainActivity: FlutterFragmentActivity() {
 	private val CHANNEL = "screen_protector"
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

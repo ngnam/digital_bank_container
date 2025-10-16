@@ -15,13 +15,25 @@ class _LockScreenState extends State<LockScreen> {
 
   Future<void> _unlock() async {
     try {
+      final canCheck = await auth.canCheckBiometrics;
+      final isSupported = await auth.isDeviceSupported();
+      if (!canCheck || !isSupported) {
+        setState(() => _error = 'Thiết bị không hỗ trợ biometrics');
+        return;
+      }
+
       final authenticated = await auth.authenticate(
         localizedReason: 'Unlock with FaceID/TouchID',
-        options: const AuthenticationOptions(biometricOnly: true),
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
       );
-      if (authenticated) widget.onUnlock();
+      if (authenticated) {
+        widget.onUnlock();
+      }
     } catch (e) {
-      setState(() => _error = 'Unlock failed');
+      setState(() => _error = 'Unlock failed: $e');
     }
   }
 
@@ -39,6 +51,10 @@ class _LockScreenState extends State<LockScreen> {
               onPressed: _unlock,
               child: const Text('Unlock with FaceID/TouchID'),
             ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+            ],
             if (_error != null) ...[
               const SizedBox(height: 8),
               Text(_error!, style: const TextStyle(color: Colors.red)),
