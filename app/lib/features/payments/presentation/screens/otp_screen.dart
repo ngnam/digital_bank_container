@@ -29,39 +29,48 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: PaymentCubit(widget.repository),
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Confirm OTP')),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Text('Payment id: ${widget.paymentId}'),
-              TextField(controller: _otpController, decoration: const InputDecoration(labelText: 'OTP')),
-              const SizedBox(height: 12),
-              ElevatedButton(onPressed: () {
-                // Use fake OTP for testing flows
-                final otp = '0000';
-                _otpController.text = otp;
-                context.read<PaymentCubit>().confirm(widget.paymentId, otp);
-              }, child: const Text('Confirm')),
-              BlocConsumer<PaymentCubit, PaymentState>(
-                listener: (context, state) {
-                  if (state is PaymentSuccess) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment success')));
-                    Future.delayed(const Duration(milliseconds: 700), () {
-                      if (!mounted) return;
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    });
-                  } else if (state is PaymentError) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
-                  }
-                },
-                builder: (context, state) => state is PaymentSubmitting ? const CircularProgressIndicator() : const SizedBox.shrink(),
-              )
-            ],
-          ),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Confirm OTP')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text('Payment id: ${widget.paymentId}'),
+            TextField(controller: _otpController, decoration: const InputDecoration(labelText: 'OTP')),
+            const SizedBox(height: 12),
+            BlocBuilder<PaymentCubit, PaymentState>(
+              builder: (context, state) {
+                final submitting = state is PaymentSubmitting;
+                return ElevatedButton(
+                  onPressed: submitting
+                      ? null
+                      : () {
+                          // Use fake OTP for testing flows
+                          final otp = '0000';
+                          _otpController.text = otp;
+                          context.read<PaymentCubit>().confirm(widget.paymentId, otp);
+                        },
+                  child: submitting
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Confirm'),
+                );
+              },
+            ),
+            BlocConsumer<PaymentCubit, PaymentState>(
+              listener: (context, state) {
+                if (state is PaymentSuccess) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment success')));
+                  Future.delayed(const Duration(milliseconds: 700), () {
+                    if (!mounted) return;
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  });
+                } else if (state is PaymentError) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+                }
+              },
+              builder: (context, state) => const SizedBox.shrink(),
+            )
+          ],
         ),
       ),
     );

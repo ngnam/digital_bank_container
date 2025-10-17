@@ -114,6 +114,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                         final formatted = NumberFormat.currency(symbol: '', decimalDigits: 2).format(amount);
                         String toLabel = _transferType == 'internal' ? 'account ${_toController.text}' : '${_nameController.text} @ ${_bankController.text}';
                         final fromLabel = _fromOwnerName ?? fromId.toString();
+                        final cubit = context.read<PaymentCubit>();
                         final confirmed = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
@@ -141,7 +142,11 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                               amount: amount,
                               description: _descController.text,
                             );
-                        context.read<PaymentCubit>().submitInternal(req);
+                        if (_transferType == 'internal') {
+                          cubit.submitInternal(req);
+                        } else {
+                          cubit.submitExternal(req);
+                        }
                       },
                       child: submitting
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -153,7 +158,8 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                 BlocConsumer<PaymentCubit, PaymentState>(
                   listener: (context, state) {
                     if (state is PaymentPending2FA) {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => OtpScreen(repository: widget.repository, paymentId: state.response.id)));
+                      // pass the existing cubit to the OTP screen so confirm uses the same instance
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider.value(value: context.read<PaymentCubit>(), child: OtpScreen(repository: widget.repository, paymentId: state.response.id))));
                     } else if (state is PaymentSuccess) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment success')));
                     } else if (state is PaymentError) {

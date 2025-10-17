@@ -36,7 +36,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   void _fetchTransactions() {
     setState(() => _isLoading = true);
+    final messenger = ScaffoldMessenger.of(context);
     context.read<TransactionHistoryCubit>().fetchTransactions(widget.accountId, page: _page, pageSize: _pageSize).then((_) {
+      if (!mounted) return;
       final state = context.read<TransactionHistoryCubit>().state;
       if (state is TransactionHistoryLoaded) {
         setState(() {
@@ -45,9 +47,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           _page++;
         });
       } else if (state is TransactionHistoryError) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+        messenger.showSnackBar(SnackBar(content: Text(state.message)));
       }
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     });
   }
 
