@@ -16,6 +16,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
   bool isOtp = false;
   String otp = '';
+  final _formKey = GlobalKey<FormState>();
+
+  // Inline OTP state
+  final TextEditingController _inlineOtpController = TextEditingController();
+  Timer? _inlineOtpTimer;
+  int _inlineOtpSeconds = 30;
+  bool _inlineSubmitting = false;
+  String? _inlineOtpError;
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +33,28 @@ class _LoginScreenState extends State<LoginScreen> {
         body: BlocConsumer<AuthCubit, AuthState>(
           listener: (context, state) {
             if (state is AuthError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              // show inline error near OTP if OTP flow
+              if (isOtp) {
+                setState(() => _inlineOtpError = state.message);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+              }
+            } else if (state is AuthAuthenticated) {
+              // Inline OTP success: close and navigate to root
+              if (isOtp) {
+                setState(() {
+                  _inlineSubmitting = false;
+                  _inlineOtpError = null;
+                });
+                final navigator = Navigator.of(context);
+                Future.delayed(const Duration(milliseconds: 700), () {
+                  if (!mounted) return;
+                  setState(() => isOtp = false);
+                  navigator.popUntil((route) => route.isFirst);
+                });
+              }
+            } else if (state is AuthLoading) {
+              if (isOtp) setState(() => _inlineSubmitting = true);
             }
           },
           builder: (context, state) {
@@ -36,22 +63,24 @@ class _LoginScreenState extends State<LoginScreen> {
             }
             return SafeArea(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
+                  // Inline OTP card shown at top when needed
+                  if (isOtp) _buildInlineOtpCard(),
                   // Header
                   Column(
                     children: [
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
                       Center(
                         child: Column(
                           children: [
-                            Image.asset('assets/images/logo.png', width: 50, height: 50, errorBuilder: (c,e,s) => const Icon(Icons.account_balance, size: 96)),
+                            Image.asset('assets/images/logo.png', width: 50, height: 50, errorBuilder: (c, e, s) => const Icon(Icons.account_balance, size: 96)),
                             const SizedBox(height: 12),
                             const Text('DigitalBank', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                     ],
                   ),
 
@@ -61,61 +90,63 @@ class _LoginScreenState extends State<LoginScreen> {
                       constraints: const BoxConstraints(maxWidth: 420),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextField(
-                              controller: phoneController,
-                              decoration: const InputDecoration(labelText: 'Tên tài khoản'),
-                              keyboardType: TextInputType.text,
-                            ),
-                            const SizedBox(height: 12),
-                            if (!isOtp)
-                              TextField(
-                                controller: passwordController,
-                                decoration: const InputDecoration(labelText: 'Mật khẩu'),
-                                obscureText: true,
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextFormField(
+                                controller: phoneController,
+                                decoration: const InputDecoration(labelText: 'Tên tài khoản', hintText: 'Nhập tên tài khoản'),
+                                keyboardType: TextInputType.text,
+                                validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tên tài khoản' : null,
                               ),
-                            if (isOtp)
-                              TextField(
-                                onChanged: (v) => otp = v,
-                                decoration: const InputDecoration(labelText: 'OTP'),
+                              const SizedBox(height: 12),
+                              if (!isOtp)
+                                TextFormField(
+                                  controller: passwordController,
+                                  decoration: const InputDecoration(labelText: 'Mật khẩu', hintText: 'Nhập mật khẩu'),
+                                  obscureText: true,
+                                  validator: (v) => (v == null || v.isEmpty) ? 'Vui lòng nhập mật khẩu' : null,
+                                ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  TextButton(onPressed: () {}, child: const Text('Quên mật khẩu')),
+                                  TextButton(onPressed: () {}, child: const Text('Đăng ký')),
+                                ],
                               ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                TextButton(onPressed: () {}, child: const Text('Quên mật khẩu')),
-                                TextButton(onPressed: () {}, child: const Text('Đăng ký')),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  if (isOtp) {
-                                    context.read<AuthCubit>().loginOtp(
-                                          phoneController.text,
-                                          otp,
-                                        );
-                                  } else {
-                                    // Start login flow and show OTP bottom sheet
-                                    // context.read<AuthCubit>().login(
-                                    //       phoneController.text,
-                                    //       passwordController.text,
-                                    // );
-                                    // open OTP bottom sheet
-                                    _showOtpBottomSheet(context, phoneController.text);
-                                  }
-                                },
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 14.0),
-                                  child: Text('Đăng nhập', style: TextStyle(fontSize: 16)),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    if (isOtp) {
+                                      // when inline OTP is active, submission is via the top card
+                                    } else {
+                                      if (_formKey.currentState?.validate() ?? false) {
+                                        // show inline OTP form (simulate sending OTP)
+                                        setState(() {
+                                          isOtp = true;
+                                          _inlineOtpError = null;
+                                        });
+                                        _startInlineOtpTimer();
+                                        // In a real flow, call cubit's login to trigger OTP send
+                                        try {
+                                          // context.read<AuthCubit>().login(phoneController.text, passwordController.text);
+                                        } catch (_) {}
+                                      }
+                                    }
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 14.0),
+                                    child: Text('Đăng nhập', style: TextStyle(fontSize: 16)),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -150,6 +181,36 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    // auto-submit inline OTP when 6 digits entered
+    _inlineOtpController.addListener(() {
+      final txt = _inlineOtpController.text.trim();
+      if (txt.length == 6 && !_inlineSubmitting) {
+        // trigger submit
+        setState(() {
+          _inlineSubmitting = true;
+          _inlineOtpError = null;
+        });
+        try {
+          context.read<AuthCubit>().loginOtp(phoneController.text, txt);
+        } catch (_) {
+          setState(() => _inlineSubmitting = false);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _inlineOtpTimer?.cancel();
+    _inlineOtpController.dispose();
+    phoneController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   void _showOtpBottomSheet(BuildContext context, String phone) {
     showModalBottomSheet(
       context: context,
@@ -170,6 +231,101 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  // Inline OTP helpers
+  Widget _buildInlineOtpCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Card(
+        color: Colors.white,
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Xác thực OTP', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  IconButton(onPressed: () {
+                    setState(() {
+                      isOtp = false;
+                      _inlineOtpController.clear();
+                      _inlineOtpTimer?.cancel();
+                    });
+                  }, icon: const Icon(Icons.close)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text('OTP đã được gửi tới: ${phoneController.text}', style: const TextStyle(fontSize: 13)),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _inlineOtpController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                decoration: InputDecoration(
+                  labelText: 'Nhập mã OTP',
+                  counterText: '',
+                  errorText: _inlineOtpError,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(_inlineOtpSeconds > 0 ? 'Gửi lại sau $_inlineOtpSeconds s' : 'Bạn có thể gửi lại mã'),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: _inlineOtpSeconds > 0 || _inlineSubmitting ? null : () {
+                          // resend logic (simulate)
+                          _startInlineOtpTimer();
+                        },
+                        child: const Text('Gửi lại'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: _inlineSubmitting ? null : () {
+                          final code = _inlineOtpController.text.trim();
+                          if (code.length != 6) {
+                            setState(() => _inlineOtpError = 'Mã OTP phải có 6 chữ số');
+                            return;
+                          }
+                          setState(() {
+                            _inlineSubmitting = true;
+                            _inlineOtpError = null;
+                          });
+                          try {
+                            context.read<AuthCubit>().loginOtp(phoneController.text, code);
+                          } catch (_) {
+                            setState(() => _inlineSubmitting = false);
+                          }
+                        },
+                        child: const Text('Xác nhận'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _startInlineOtpTimer() {
+    _inlineOtpTimer?.cancel();
+    setState(() => _inlineOtpSeconds = 30);
+    _inlineOtpTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return t.cancel();
+      setState(() {
+        if (_inlineOtpSeconds > 0) _inlineOtpSeconds--;
+        else t.cancel();
+      });
+    });
   }
 }
 

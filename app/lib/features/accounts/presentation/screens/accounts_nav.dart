@@ -4,7 +4,6 @@ import 'account_detail_screen.dart';
 import 'qr_scanner_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../auth/presentation/bloc/auth_cubit.dart';
-import '../../../payments/presentation/screens/pending_payments_screen.dart';
 import '../../data/repositories/account_repository_impl.dart';
 import '../../domain/usecases/get_account_detail.dart';
 import '../../domain/usecases/get_transactions.dart';
@@ -35,6 +34,7 @@ class _AccountsNavState extends State<AccountsNav> {
   late final GetTransactions _getTransactions;
   dynamic _selectedAccount;
   bool _showBalance = false;
+  bool _pickerOpen = false;
 
   @override
   void initState() {
@@ -45,6 +45,28 @@ class _AccountsNavState extends State<AccountsNav> {
     _repo = AccountRepositoryImpl(remote: remote, local: local);
     _getAccountDetail = GetAccountDetail(_repo);
     _getTransactions = GetTransactions(_repo);
+
+    // Fetch accounts on startup and default-select the first account if any.
+    // Use AccountListCubit to reuse the same fetching logic as the picker.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final cubit = AccountListCubit(GetAccounts(_repo));
+      await cubit.fetchAccounts();
+      final state = cubit.state;
+      if (state is AccountListLoaded && state.accounts.isNotEmpty) {
+        final first = state.accounts.first;
+        setState(() {
+          _selectedAccount = first;
+          _selectedAccountId = first.id;
+        });
+        // try to persist selection in SelectedAccountCubit if available
+        try {
+          final sel = BlocProvider.of<SelectedAccountCubit>(context);
+          sel.select(first);
+        } catch (_) {
+          // not provided higher in the tree, ignore
+        }
+      }
+    });
   }
   int _selectedIndex = 0;
   int? _selectedAccountId;
@@ -77,6 +99,7 @@ class _AccountsNavState extends State<AccountsNav> {
   }
 
   Future<void> _showAccountPicker() async {
+    setState(() => _pickerOpen = true);
     // Use the AccountListCubit to fetch and display accounts
     final cubit = AccountListCubit(GetAccounts(_repo));
     await cubit.fetchAccounts();
@@ -103,18 +126,23 @@ class _AccountsNavState extends State<AccountsNav> {
         ),
       ),
     );
-    if (result != null) {
-      // persist selection in SelectedAccountCubit so other screens can read it
-      // If a SelectedAccountCubit exists in the tree, use it; otherwise set local state
-      try {
-        final sel = BlocProvider.of<SelectedAccountCubit>(context);
-        sel.select(result);
-      } catch (_) {}
-      setState(() {
-        _selectedAccount = result;
-        _selectedAccountId = result.id;
-      });
+    try {
+      // result will be set when modal is dismissed
+      if (result != null) {
+        // persist selection in SelectedAccountCubit so other screens can read it
+        try {
+          final sel = BlocProvider.of<SelectedAccountCubit>(context);
+          sel.select(result);
+        } catch (_) {}
+        setState(() {
+          _selectedAccount = result;
+          _selectedAccountId = result.id;
+        });
+      }
+    } finally {
+      setState(() => _pickerOpen = false);
     }
+    
   }
 
   void _onAccountTap(account) {
@@ -123,6 +151,10 @@ class _AccountsNavState extends State<AccountsNav> {
       _selectedAccount = account;
       _selectedIndex = 1;
     });
+    try {
+      final sel = BlocProvider.of<SelectedAccountCubit>(context);
+      sel.select(account);
+    } catch (_) {}
   }
 
   void _onViewTransactions(int accountId) {
@@ -204,23 +236,56 @@ class _AccountsNavState extends State<AccountsNav> {
               setState(() => _selectedIndex = 0);
             },
             child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                if (_selectedAccount != null) ...[
-                  Text('${_selectedAccount.ownerName} • ${_selectedAccount.accountNumber}', style: const TextStyle(fontSize: 16)),
-                ] else ...[
-                  const Text('Digital Bank', style: TextStyle(fontSize: 16)),
-                ],
-                const SizedBox(height: 2),
+                // Line 1: ownerName • accountNumber or fallback, with dropdown to pick account
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(_selectedAccount != null ? (_showBalance ? '${_selectedAccount.balance} ${_selectedAccount.currency}' : '••••••') : ''),
+                    Flexible(
+                      child: Text(
+                        _selectedAccount != null
+                            ? '${_selectedAccount.ownerName} • ${_selectedAccount.accountNumber}'
+                            : 'Digital Bank',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.95)),
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // dropdown icon to open account picker (animated)
+                    AnimatedRotation(
+                      turns: _pickerOpen ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 180),
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                        icon: Icon(Icons.expand_more, size: 18, color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.85)),
+                        onPressed: _showAccountPicker,
+                        tooltip: 'Chọn tài khoản',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                // Line 2: balance + currency or masked with small eye icon
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      _selectedAccount != null
+                          ? (_showBalance ? _formatBalance(_selectedAccount.balance, _selectedAccount.currency) : '••••••')
+                          : '',
+                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.85)),
+                    ),
                     const SizedBox(width: 6),
                     if (_selectedAccount != null)
                       IconButton(
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        icon: Icon(_showBalance ? Icons.visibility : Icons.visibility_off, size: 18),
+                        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                        icon: Icon(_showBalance ? Icons.visibility : Icons.visibility_off, size: 18, color: Colors.white70),
                         onPressed: () => setState(() => _showBalance = !_showBalance),
                       ),
                   ],
@@ -229,13 +294,13 @@ class _AccountsNavState extends State<AccountsNav> {
             ),
           ),
           actions: [
-            IconButton(
-              tooltip: 'Debug pending payments',
-              icon: const Icon(Icons.bug_report),
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => PendingPaymentsScreen(repository: widget.paymentRepository)));
-              },
-            ),
+            // IconButton(
+            //   tooltip: 'Debug pending payments',
+            //   icon: const Icon(Icons.bug_report),
+            //   onPressed: () {
+            //     Navigator.push(context, MaterialPageRoute(builder: (_) => PendingPaymentsScreen(repository: widget.paymentRepository)));
+            //   },
+            // ),
             IconButton(
               tooltip: 'Thông báo',
               icon: const Icon(Icons.notifications),
@@ -315,6 +380,18 @@ class _AccountsNavState extends State<AccountsNav> {
 
     // fallback: treat the entire string as the 'to' value
     return {'to': raw};
+  }
+
+  String _formatBalance(dynamic balance, String? currency) {
+    if (balance == null) return '0${currency ?? ''}';
+    try {
+      final numVal = num.parse(balance.toString());
+      // simple thousands separator
+      final formatted = numVal is int ? numVal.toString() : numVal.toString();
+      return '$formatted ${currency ?? ''}';
+    } catch (_) {
+      return '${balance.toString()} ${currency ?? ''}';
+    }
   }
 }
 
