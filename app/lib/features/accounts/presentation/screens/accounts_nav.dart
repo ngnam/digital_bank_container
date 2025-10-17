@@ -167,7 +167,7 @@ class _PaymentsMenu extends StatelessWidget {
             title: const Text('New Payment'),
             onTap: () {
               final repo = repository ?? MockPaymentRepository(Dio());
-              Navigator.push(context, MaterialPageRoute(builder: (_) => PaymentFormScreen(repository: repo, fromAccountId: accountId)));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => PaymentFormScreen(repository: repo, fromAccountId: accountId, accountRepository: accountRepository)));
             },
           ),
           ListTile(

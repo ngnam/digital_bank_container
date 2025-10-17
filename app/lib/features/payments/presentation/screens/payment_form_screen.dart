@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/payment_repository.dart';
+import '../../../accounts/domain/repositories/account_repository.dart';
 import '../../domain/models/payment_request.dart';
 import '../bloc/payment_cubit.dart';
 import 'otp_screen.dart';
@@ -10,7 +11,8 @@ import 'otp_screen.dart';
 class PaymentFormScreen extends StatefulWidget {
   final PaymentRepository repository;
   final int? fromAccountId;
-  const PaymentFormScreen({super.key, required this.repository, this.fromAccountId});
+  final AccountRepository? accountRepository;
+  const PaymentFormScreen({super.key, required this.repository, this.fromAccountId, this.accountRepository});
 
   @override
   State<PaymentFormScreen> createState() => _PaymentFormScreenState();
@@ -24,6 +26,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
   final _bankController = TextEditingController();
   final _nameController = TextEditingController();
   String _transferType = 'internal'; // 'internal' or 'external'
+  String? _fromOwnerName;
 
   @override
   void dispose() {
@@ -33,6 +36,27 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
     _bankController.dispose();
     _nameController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOwnerNameIfNeeded();
+  }
+
+  Future<void> _loadOwnerNameIfNeeded() async {
+    final repo = widget.accountRepository;
+    final id = widget.fromAccountId;
+    if (repo == null || id == null) return;
+    try {
+      final acc = await repo.getAccountDetail(id);
+      if (!mounted) return;
+      setState(() {
+        _fromOwnerName = acc.ownerName;
+      });
+    } catch (_) {
+      // ignore, fallback to id
+    }
   }
 
   // Formatter that inserts thousand separators and keeps two decimals
@@ -89,11 +113,12 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                         final amount = double.tryParse(rawAmount) ?? 0.0;
                         final formatted = NumberFormat.currency(symbol: '', decimalDigits: 2).format(amount);
                         String toLabel = _transferType == 'internal' ? 'account ${_toController.text}' : '${_nameController.text} @ ${_bankController.text}';
+                        final fromLabel = _fromOwnerName ?? fromId.toString();
                         final confirmed = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text('Confirm payment'),
-                            content: Text('Send $formatted from account $fromId to $toLabel?'),
+                            content: Text('Send $formatted from account $fromLabel to $toLabel?'),
                             actions: [
                               TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
                               ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Confirm')),
