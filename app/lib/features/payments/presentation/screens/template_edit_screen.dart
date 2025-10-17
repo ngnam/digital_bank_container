@@ -41,8 +41,10 @@ class _TemplateEditScreenState extends State<TemplateEditScreen> {
       accountNumber: _accountC.text.trim(),
       bankCode: _bankC.text.trim(),
     );
+    final navigator = Navigator.of(context);
     await widget.repository.saveTemplate(t);
-    Navigator.pop(context, true);
+    if (!mounted) return;
+    navigator.pop(true);
   }
 
   @override

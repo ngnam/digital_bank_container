@@ -26,7 +26,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   void initState() {
     super.initState();
     _cubit = TransactionHistoryCubit(widget.getTransactions);
-    _fetchTransactions();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _fetchTransactions();
+    });
     _scrollController.addListener(_onScroll);
   }
 

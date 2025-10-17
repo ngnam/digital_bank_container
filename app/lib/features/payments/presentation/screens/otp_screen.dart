@@ -59,13 +59,16 @@ class _OtpScreenState extends State<OtpScreen> {
             BlocConsumer<PaymentCubit, PaymentState>(
               listener: (context, state) {
                 if (state is PaymentSuccess) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment success')));
-                  Future.delayed(const Duration(milliseconds: 700), () {
-                    if (!mounted) return;
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  });
+                    final messenger = ScaffoldMessenger.of(context);
+                    final navigator = Navigator.of(context);
+                    messenger.showSnackBar(const SnackBar(content: Text('Payment success')));
+                    Future.delayed(const Duration(milliseconds: 700), () {
+                      if (!mounted) return;
+                      navigator.popUntil((route) => route.isFirst);
+                    });
                 } else if (state is PaymentError) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+                    final messenger = ScaffoldMessenger.of(context);
+                    messenger.showSnackBar(SnackBar(content: Text(state.message)));
                 }
               },
               builder: (context, state) => const SizedBox.shrink(),
