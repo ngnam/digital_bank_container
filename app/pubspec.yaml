@@ -36,13 +36,14 @@ dependencies:
   dio: ^5.9.0
   flutter_bloc: ^9.1.1
   flutter_lints: ^5.0.0
-  flutter_secure_storage: ^4.2.1
+  flutter_secure_storage: ^9.2.4
   get_it: ^8.2.0
   injectable: ^2.5.1
   intl: ^0.18.1
   local_auth: ^2.3.0
   sqflite: ^2.3.0
   connectivity_plus: ^4.0.0
+  mobile_scanner: ^6.0.11
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 

@@ -17,6 +17,7 @@ import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'features/accounts/presentation/screens/accounts_nav.dart';
+import 'features/accounts/presentation/bloc/selected_account_cubit.dart';
 import 'features/payments/data/payment_local_db_impl.dart';
 import 'features/payments/data/payment_repository.dart';
 import 'package:dio/dio.dart';
@@ -48,6 +49,9 @@ class RootApp extends StatelessWidget {
             removeDevice: RemoveDevice(repo),
               remote: remote,
           ),
+        ),
+        BlocProvider(
+          create: (_) => SelectedAccountCubit(),
         ),
       ],
       child: MaterialApp(
@@ -129,7 +133,7 @@ class _AuthNavState extends State<AuthNav> {
                               errorBuilder: (context, error, stack) => const SizedBox(width: 30, height: 30, child: Icon(Icons.account_balance)),
                             ),
                             const SizedBox(width: 8),
-                            const Text('Digital Bank Demo'),
+                            const Text('Digital Bank'),
                           ],
                         ),
                         actions: [
@@ -165,7 +169,7 @@ class HomePage extends StatelessWidget {
               errorBuilder: (context, error, stack) => const SizedBox(width: 25, height: 25, child: Icon(Icons.account_balance)),
             ),
             const SizedBox(width: 8),
-            const Text('Digital Bank Demo'),
+            const Text('Digital Bank'),
           ],
         ),
       ),

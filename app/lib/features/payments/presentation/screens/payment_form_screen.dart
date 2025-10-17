@@ -12,7 +12,23 @@ class PaymentFormScreen extends StatefulWidget {
   final PaymentRepository repository;
   final int? fromAccountId;
   final AccountRepository? accountRepository;
-  const PaymentFormScreen({super.key, required this.repository, this.fromAccountId, this.accountRepository});
+  final String? scannedTo;
+  final String? scannedName;
+  final String? scannedBank;
+  final String? scannedAmount;
+  final String? scannedTransferType;
+
+  const PaymentFormScreen({
+    super.key,
+    required this.repository,
+    this.fromAccountId,
+    this.accountRepository,
+    this.scannedTo,
+    this.scannedName,
+    this.scannedBank,
+    this.scannedAmount,
+    this.scannedTransferType,
+  });
 
   @override
   State<PaymentFormScreen> createState() => _PaymentFormScreenState();
@@ -42,6 +58,32 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
   void initState() {
     super.initState();
     _loadOwnerNameIfNeeded();
+
+    // prefill from scanned QR if provided
+    if (widget.scannedTo != null && widget.scannedTo!.isNotEmpty) {
+      final scanned = widget.scannedTo!.trim();
+      _toController.text = scanned;
+          if (widget.scannedTransferType != null && widget.scannedTransferType!.isNotEmpty) {
+            _transferType = widget.scannedTransferType!;
+          } else {
+            _transferType = RegExp(r'^\d+$').hasMatch(scanned) ? 'internal' : (RegExp(r'^\d+$').hasMatch(scanned) ? 'internal' : 'external');
+      }
+    }
+
+    if (widget.scannedName != null && widget.scannedName!.isNotEmpty) {
+      _nameController.text = widget.scannedName!;
+    }
+    if (widget.scannedBank != null && widget.scannedBank!.isNotEmpty) {
+      _bankController.text = widget.scannedBank!;
+    }
+    if (widget.scannedAmount != null && widget.scannedAmount!.isNotEmpty) {
+      final a = double.tryParse(widget.scannedAmount!.toString());
+      if (a != null) {
+        _amountController.text = NumberFormat('#,##0.00', 'en_US').format(a);
+      } else {
+        _amountController.text = widget.scannedAmount!;
+      }
+    }
   }
 
   Future<void> _loadOwnerNameIfNeeded() async {
@@ -74,7 +116,6 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
             key: _formKey,
             child: Column(
               children: [
-                // Transfer type selector (Nội bộ / Liên ngân hàng)
                 DropdownButtonFormField<String>(
                   value: _transferType,
                   decoration: const InputDecoration(labelText: 'Tranfer Type (Nội bộ / Liên ngân hàng)'),
@@ -100,12 +141,10 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                     final submitting = state is PaymentSubmitting;
                     return ElevatedButton(
                       onPressed: submitting ? null : () async {
-                        // dismiss keyboard
                         FocusScope.of(context).unfocus();
                         if (!_formKey.currentState!.validate()) return;
                         final fromId = widget.fromAccountId;
                         if (fromId == null) {
-                          // Shouldn't happen because menu requires selection, but guard anyway
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No from account selected')));
                           return;
                         }
@@ -158,7 +197,6 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                 BlocConsumer<PaymentCubit, PaymentState>(
                   listener: (context, state) {
                     if (state is PaymentPending2FA) {
-                      // pass the existing cubit to the OTP screen so confirm uses the same instance
                       Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider.value(value: context.read<PaymentCubit>(), child: OtpScreen(repository: widget.repository, paymentId: state.response.id))));
                     } else if (state is PaymentSuccess) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment success')));
@@ -167,7 +205,6 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                     }
                   },
                   builder: (context, state) {
-                    // UI for states handled inline (button shows submitting); nothing extra to render here
                     return const SizedBox.shrink();
                   },
                 ),
@@ -188,14 +225,11 @@ class ThousandsSeparatorInputFormatter extends TextInputFormatter {
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
     var text = newValue.text;
     if (text.isEmpty) return newValue;
-    // remove non-number except dot
     text = text.replaceAll(RegExp('[^0-9.]'), '');
-    // split decimals
     final parts = text.split('.');
     String intPart = parts[0];
     String decPart = parts.length > 1 ? parts[1] : '';
     if (decPart.length > 2) decPart = decPart.substring(0, 2);
-    // add separators to int part
     final buffer = StringBuffer();
     for (int i = 0; i < intPart.length; i++) {
       final pos = intPart.length - i;
@@ -204,8 +238,6 @@ class ThousandsSeparatorInputFormatter extends TextInputFormatter {
     }
     String formatted = buffer.toString();
     if (decPart.isNotEmpty) formatted = '$formatted.$decPart';
-
-    // maintain cursor at end
     return TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
