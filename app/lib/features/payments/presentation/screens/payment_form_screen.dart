@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/payment_repository.dart';
@@ -20,14 +21,22 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
   final _toController = TextEditingController();
   final _amountController = TextEditingController();
   final _descController = TextEditingController();
+  final _bankController = TextEditingController();
+  final _nameController = TextEditingController();
+  String _transferType = 'internal'; // 'internal' or 'external'
 
   @override
   void dispose() {
     _toController.dispose();
     _amountController.dispose();
     _descController.dispose();
+    _bankController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
+
+  // Formatter that inserts thousand separators and keeps two decimals
+  final _amountFormatter = ThousandsSeparatorInputFormatter();
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +50,25 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
             key: _formKey,
             child: Column(
               children: [
-                TextFormField(controller: _toController, decoration: const InputDecoration(labelText: 'To account / number'), validator: (v) => v?.isEmpty == true ? 'Required' : null,),
-                TextFormField(controller: _amountController, decoration: const InputDecoration(labelText: 'Amount'), keyboardType: TextInputType.number, validator: (v) => v?.isEmpty == true ? 'Required' : null,),
+                // Transfer type selector (Nội bộ / Liên ngân hàng)
+                DropdownButtonFormField<String>(
+                  value: _transferType,
+                  decoration: const InputDecoration(labelText: 'Tranfer Type (Nội bộ / Liên ngân hàng)'),
+                  items: const [
+                    DropdownMenuItem(value: 'internal', child: Text('Nội bộ')),
+                    DropdownMenuItem(value: 'external', child: Text('Liên ngân hàng')),
+                  ],
+                  onChanged: (v) => setState(() { if (v != null) _transferType = v; }),
+                ),
+                const SizedBox(height: 8),
+                if (_transferType == 'internal')
+                  TextFormField(controller: _toController, decoration: const InputDecoration(labelText: 'To account id'), keyboardType: TextInputType.number, validator: (v) => v?.isEmpty == true ? 'Required' : null,)
+                else ...[
+                  TextFormField(controller: _bankController, decoration: const InputDecoration(labelText: 'Bank code'), validator: (v) => v?.isEmpty == true ? 'Required' : null,),
+                  TextFormField(controller: _toController, decoration: const InputDecoration(labelText: 'To account number'), validator: (v) => v?.isEmpty == true ? 'Required' : null,),
+                  TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Recipient name'), validator: (v) => v?.isEmpty == true ? 'Required' : null,),
+                ],
+                TextFormField(controller: _amountController, decoration: const InputDecoration(labelText: 'Amount'), keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [_amountFormatter], validator: (v) => v?.isEmpty == true ? 'Required' : null,),
                 TextFormField(controller: _descController, decoration: const InputDecoration(labelText: 'Description')),
                 const SizedBox(height: 20),
                 BlocBuilder<PaymentCubit, PaymentState>(
@@ -59,13 +85,15 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No from account selected')));
                           return;
                         }
-                        final amount = double.tryParse(_amountController.text) ?? 0.0;
+                        final rawAmount = _amountController.text.replaceAll(',', '');
+                        final amount = double.tryParse(rawAmount) ?? 0.0;
                         final formatted = NumberFormat.currency(symbol: '', decimalDigits: 2).format(amount);
+                        String toLabel = _transferType == 'internal' ? 'account ${_toController.text}' : '${_nameController.text} @ ${_bankController.text}';
                         final confirmed = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text('Confirm payment'),
-                            content: Text('Send $formatted from account $fromId to ${_toController.text}?'),
+                            content: Text('Send $formatted from account $fromId to $toLabel?'),
                             actions: [
                               TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
                               ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Confirm')),
@@ -73,12 +101,21 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                           ),
                         );
                         if (confirmed != true) return;
-                        final req = PaymentRequest(
-                          fromAccountId: fromId,
-                          toAccountId: int.tryParse(_toController.text),
-                          amount: double.tryParse(_amountController.text) ?? 0.0,
-                          description: _descController.text,
-                        );
+                        final req = _transferType == 'internal'
+                          ? PaymentRequest(
+                              fromAccountId: fromId,
+                              toAccountId: int.tryParse(_toController.text),
+                              amount: amount,
+                              description: _descController.text,
+                            )
+                          : PaymentRequest(
+                              fromAccountId: fromId,
+                              toBankCode: _bankController.text,
+                              toAccountNumber: _toController.text,
+                              toName: _nameController.text,
+                              amount: amount,
+                              description: _descController.text,
+                            );
                         context.read<PaymentCubit>().submitInternal(req);
                       },
                       child: submitting
@@ -108,6 +145,39 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  final String separator;
+  ThousandsSeparatorInputFormatter({this.separator = ','});
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    var text = newValue.text;
+    if (text.isEmpty) return newValue;
+    // remove non-number except dot
+    text = text.replaceAll(RegExp('[^0-9.]'), '');
+    // split decimals
+    final parts = text.split('.');
+    String intPart = parts[0];
+    String decPart = parts.length > 1 ? parts[1] : '';
+    if (decPart.length > 2) decPart = decPart.substring(0, 2);
+    // add separators to int part
+    final buffer = StringBuffer();
+    for (int i = 0; i < intPart.length; i++) {
+      final pos = intPart.length - i;
+      buffer.write(intPart[i]);
+      if (pos > 1 && pos % 3 == 1) buffer.write(separator);
+    }
+    String formatted = buffer.toString();
+    if (decPart.isNotEmpty) formatted = '$formatted.$decPart';
+
+    // maintain cursor at end
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

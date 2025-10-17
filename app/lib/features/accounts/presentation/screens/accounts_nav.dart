@@ -99,7 +99,7 @@ class _AccountsNavState extends State<AccountsNav> {
       ],
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('KienLongBank'),
+          title: const Text('Chức năng chính'),
           actions: [
             IconButton(
               icon: const Icon(Icons.payment),
@@ -111,7 +111,7 @@ class _AccountsNavState extends State<AccountsNav> {
                   return;
                 }
                 // Open a small payments menu
-                Navigator.push(context, MaterialPageRoute(builder: (_) => _PaymentsMenu(repository: widget.paymentRepository, accountId: _selectedAccountId)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => _PaymentsMenu(repository: widget.paymentRepository, accountId: _selectedAccountId, accountRepository: _repo)));
               },
             ),
             IconButton(
@@ -153,7 +153,8 @@ class _AccountsNavState extends State<AccountsNav> {
 class _PaymentsMenu extends StatelessWidget {
   final dynamic repository;
   final int? accountId;
-  const _PaymentsMenu({super.key, this.repository, this.accountId});
+  final dynamic accountRepository;
+  const _PaymentsMenu({super.key, this.repository, this.accountId, this.accountRepository});
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +183,7 @@ class _PaymentsMenu extends StatelessWidget {
             title: const Text('Schedules'),
             onTap: () {
               final repo = repository ?? MockPaymentRepository(Dio(), localDb: PaymentLocalDbImpl());
-              Navigator.push(context, MaterialPageRoute(builder: (_) => ScheduleListScreen(repository: repo)));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ScheduleListScreen(repository: repo, accountRepository: accountRepository)));
             },
           ),
         ],

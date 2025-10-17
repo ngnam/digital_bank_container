@@ -5,7 +5,8 @@ import 'schedule_edit_screen.dart';
 
 class ScheduleListScreen extends StatefulWidget {
   final PaymentRepository repository;
-  const ScheduleListScreen({super.key, required this.repository});
+  final dynamic accountRepository;
+  const ScheduleListScreen({super.key, required this.repository, this.accountRepository});
 
   @override
   State<ScheduleListScreen> createState() => _ScheduleListScreenState();
@@ -34,8 +35,8 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
         itemBuilder: (c, i) => ListTile(
           title: Text(_schedules[i].name),
           subtitle: Text(_schedules[i].cron),
-          onTap: () async {
-            final updated = await Navigator.push(context, MaterialPageRoute(builder: (_) => ScheduleEditScreen(repository: widget.repository, schedule: _schedules[i])));
+            onTap: () async {
+            final updated = await Navigator.push(context, MaterialPageRoute(builder: (_) => ScheduleEditScreen(repository: widget.repository, schedule: _schedules[i], accountRepository: widget.accountRepository)));
             if (updated == true) _load();
           },
         ),
@@ -43,7 +44,7 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () async {
-          final created = await Navigator.push(context, MaterialPageRoute(builder: (_) => ScheduleEditScreen(repository: widget.repository)));
+          final created = await Navigator.push(context, MaterialPageRoute(builder: (_) => ScheduleEditScreen(repository: widget.repository, accountRepository: widget.accountRepository)));
           if (created == true) _load();
         },
       ),

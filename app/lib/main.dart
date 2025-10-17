@@ -53,19 +53,6 @@ class RootApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: AuthNav(),
-        theme: ThemeData(
-          scaffoldBackgroundColor: Colors.transparent,
-        ),
-        builder: (context, child) {
-          return Stack(
-            children: [
-              Positioned.fill(
-                child: Image.asset('assets/images/kienlong_bg.png', fit: BoxFit.cover),
-              ),
-              if (child != null) child,
-            ],
-          );
-        },
       ),
     );
   }
@@ -133,7 +120,18 @@ class _AuthNavState extends State<AuthNav> {
                   ? Scaffold(
                       body: AccountsNav(paymentRepository: _sharedPaymentRepo),
                       appBar: AppBar(
-                        title: const Text('KienLongBank'),
+                        title: Row(
+                          children: [
+                            Image.asset(
+                              'assets/images/logo.png',
+                              width: 30,
+                              height: 30,
+                              errorBuilder: (context, error, stack) => const SizedBox(width: 30, height: 30, child: Icon(Icons.account_balance)),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('KienLongBank'),
+                          ],
+                        ),
                         actions: [
                           IconButton(
                             tooltip: 'Debug pending payments',
@@ -157,7 +155,20 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('KienLongBank')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/logo.png',
+              width: 25,
+              height: 25,
+              errorBuilder: (context, error, stack) => const SizedBox(width: 25, height: 25, child: Icon(Icons.account_balance)),
+            ),
+            const SizedBox(width: 8),
+            const Text('KienLongBank'),
+          ],
+        ),
+      ),
       body: const Center(child: Text('Welcome to KienLongBank!')),
     );
   }
