@@ -20,10 +20,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   final List<TransactionEntity> _transactions = [];
   bool _isLoading = false;
   bool _hasMore = true;
+  late final TransactionHistoryCubit _cubit;
 
   @override
   void initState() {
     super.initState();
+    _cubit = TransactionHistoryCubit(widget.getTransactions);
     _fetchTransactions();
     _scrollController.addListener(_onScroll);
   }
@@ -37,9 +39,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   void _fetchTransactions() {
     setState(() => _isLoading = true);
     final messenger = ScaffoldMessenger.of(context);
-    context.read<TransactionHistoryCubit>().fetchTransactions(widget.accountId, page: _page, pageSize: _pageSize).then((_) {
+    _cubit.fetchTransactions(widget.accountId, page: _page, pageSize: _pageSize).then((_) {
       if (!mounted) return;
-      final state = context.read<TransactionHistoryCubit>().state;
+      final state = _cubit.state;
       if (state is TransactionHistoryLoaded) {
         setState(() {
           if (state.transactions.length < _pageSize) _hasMore = false;
@@ -56,13 +58,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _cubit.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => TransactionHistoryCubit(widget.getTransactions),
+    return BlocProvider.value(
+      value: _cubit,
       child: Scaffold(
         appBar: AppBar(title: const Text('Transaction History')),
         body: ListView.builder(
