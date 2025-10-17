@@ -4,6 +4,7 @@ class TransactionEntity {
   final double amount;
   final String description;
   final DateTime timestamp;
+  final String? currency;
 
   TransactionEntity({
     required this.id,
@@ -11,5 +12,6 @@ class TransactionEntity {
     required this.amount,
     required this.description,
     required this.timestamp,
+    this.currency,
   });
 }

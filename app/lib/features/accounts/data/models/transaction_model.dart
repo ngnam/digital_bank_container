@@ -7,6 +7,7 @@ class TransactionModel extends TransactionEntity {
     required super.amount,
     required super.description,
     required super.timestamp,
+    super.currency,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) => TransactionModel(
@@ -15,6 +16,7 @@ class TransactionModel extends TransactionEntity {
         amount: (json['amount'] as num).toDouble(),
         description: json['description'],
         timestamp: DateTime.parse(json['timestamp']),
+        currency: json['currency'],
       );
 
   Map<String, dynamic> toJson() => {
@@ -23,5 +25,6 @@ class TransactionModel extends TransactionEntity {
         'amount': amount,
         'description': description,
         'timestamp': timestamp.toIso8601String(),
+        'currency': currency,
       };
 }

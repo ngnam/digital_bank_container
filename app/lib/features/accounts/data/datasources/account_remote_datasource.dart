@@ -35,18 +35,18 @@ class MockAccountRemoteDataSource implements AccountRemoteDataSource {
     // Mock lịch sử giao dịch theo accountId
     if (accountId == 1) {
       return [
-        TransactionModel(id: 101, type: 'DEBIT', amount: 50000, description: 'Transfer to B', timestamp: DateTime.now().subtract(const Duration(days: 1))),
-        TransactionModel(id: 102, type: 'CREDIT', amount: 200000, description: 'Salary', timestamp: DateTime.now().subtract(const Duration(days: 2))),
+        TransactionModel(id: 101, type: 'DEBIT', amount: 50000, currency: 'VND', description: 'Transfer to B', timestamp: DateTime.now().subtract(const Duration(days: 1))),
+        TransactionModel(id: 102, type: 'CREDIT', amount: 200000, currency: 'VND', description: 'Salary', timestamp: DateTime.now().subtract(const Duration(days: 2))),
       ];
     } else if (accountId == 2) {
       return [
-        TransactionModel(id: 201, type: 'DEBIT', amount: 1000, description: 'Buy USD', timestamp: DateTime.now().subtract(const Duration(days: 3))),
-        TransactionModel(id: 202, type: 'CREDIT', amount: 3000, description: 'Deposit', timestamp: DateTime.now().subtract(const Duration(days: 4))),
+        TransactionModel(id: 201, type: 'DEBIT', amount: 1000, currency: 'USD', description: 'Buy USD', timestamp: DateTime.now().subtract(const Duration(days: 3))),
+        TransactionModel(id: 202, type: 'CREDIT', amount: 3000, currency: 'USD', description: 'Deposit', timestamp: DateTime.now().subtract(const Duration(days: 4))),
       ];
     } else {
       return [
-        TransactionModel(id: 301, type: 'DEBIT', amount: 500, description: 'Buy EUR', timestamp: DateTime.now().subtract(const Duration(days: 5))),
-        TransactionModel(id: 302, type: 'CREDIT', amount: 700, description: 'Deposit', timestamp: DateTime.now().subtract(const Duration(days: 6))),
+        TransactionModel(id: 301, type: 'DEBIT', amount: 500, currency: 'EUR', description: 'Buy EUR', timestamp: DateTime.now().subtract(const Duration(days: 5))),
+        TransactionModel(id: 302, type: 'CREDIT', amount: 700, currency: 'EUR', description: 'Deposit', timestamp: DateTime.now().subtract(const Duration(days: 6))),
       ];
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/account_list_cubit.dart';
 import '../../domain/entities/account_entity.dart';
+import 'package:intl/intl.dart';
 
 class AccountListScreen extends StatelessWidget {
   final void Function(AccountEntity) onAccountTap;
@@ -27,7 +28,10 @@ class AccountListScreen extends StatelessWidget {
                   final account = state.accounts[index];
                   return ListTile(
                     title: Text(account.ownerName),
-                    subtitle: Text('Balance: ${account.balance ?? 0}'),
+                    subtitle: Text(
+                      'Balance: ${NumberFormat('#,##0.00').format(account.balance ?? 0)}${account.currency == 'VND' ? ' đ' : ' ${account.currency}'}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                    ),
                     onTap: () => onAccountTap(account),
                   );
                 },

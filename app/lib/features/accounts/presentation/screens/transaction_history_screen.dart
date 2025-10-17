@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/transaction_history_cubit.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/usecases/get_transactions.dart';
+import 'package:intl/intl.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   final int accountId;
@@ -78,8 +79,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             if (index < _transactions.length) {
               final tx = _transactions[index];
               return ListTile(
-                title: Text(tx.description),
-                subtitle: Text('${tx.timestamp} - ${tx.amount}'),
+                title: Text('${tx.description} - ${tx.timestamp}'),
+                subtitle: Text(
+                   'Amount: ${NumberFormat('#,##0.00').format(tx.amount)}${tx.currency == 'VND' ? ' đ' : ' ${tx.currency}'}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                ),
               );
             } else {
               return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
