@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app/core/screen_protector.dart';
 import '../bloc/auth_cubit.dart';
+import 'dart:async';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             Image.asset('assets/images/logo.png', width: 50, height: 50, errorBuilder: (c,e,s) => const Icon(Icons.account_balance, size: 96)),
                             const SizedBox(height: 12),
-                            const Text('KienLongBank', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            const Text('DigitalBank', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -99,10 +100,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                           otp,
                                         );
                                   } else {
+                                    // Start login flow and show OTP bottom sheet
                                     context.read<AuthCubit>().login(
                                           phoneController.text,
                                           passwordController.text,
                                         );
+                                    // open OTP bottom sheet
+                                    _showOtpBottomSheet(context, phoneController.text);
                                   }
                                 },
                                 child: const Padding(
@@ -145,6 +149,167 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  void _showOtpBottomSheet(BuildContext context, String phone) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.44,
+        minChildSize: 0.28,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, controller) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: OtpBottomSheet(phone: phone),
+        ),
+      ),
+    );
+  }
+}
+
+class OtpBottomSheet extends StatefulWidget {
+  final String phone;
+  const OtpBottomSheet({required this.phone, super.key});
+
+  @override
+  State<OtpBottomSheet> createState() => _OtpBottomSheetState();
+}
+
+class _OtpBottomSheetState extends State<OtpBottomSheet> {
+  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _nodes = List.generate(6, (_) => FocusNode());
+  Timer? _timer;
+  int _seconds = 30;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+    // auto focus first
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _nodes[0].requestFocus();
+    });
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    setState(() => _seconds = 30);
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return t.cancel();
+      setState(() {
+        if (_seconds > 0) _seconds--;
+        else t.cancel();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers) c.dispose();
+    for (final n in _nodes) n.dispose();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _collectOtp() => _controllers.map((c) => c.text).join();
+
+  void _onChanged(int index, String v) {
+    if (v.isEmpty) return;
+    // move focus
+    if (index < 5) {
+      _nodes[index + 1].requestFocus();
+    } else {
+      // last digit entered -> trigger OTP submission
+      final otp = _collectOtp();
+      // call cubit to confirm
+      try {
+        context.read<AuthCubit>().loginOtp(widget.phone, otp);
+        // show loading by leaving sheet open until auth state changes
+      } catch (_) {}
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Xác thực OTP', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text('OTP đã được gửi đến số điện thoại của Quý khách. Vui lòng nhập OTP vào ô dưới đây để xác thực.'),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(6, (i) => SizedBox(
+            width: 42,
+            child: TextField(
+              controller: _controllers[i],
+              focusNode: _nodes[i],
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              maxLength: 1,
+              decoration: const InputDecoration(counterText: ''),
+              onChanged: (v) => _onChanged(i, v),
+            ),
+          )),
+        ),
+        const SizedBox(height: 12),
+        BlocConsumer<AuthCubit, AuthState>(
+          listener: (context, state) {
+            if (state is AuthAuthenticated) {
+              // close sheet on success
+              if (mounted) Navigator.of(context).pop();
+            } else if (state is AuthError) {
+              // show error for OTP failure
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+            }
+          },
+          builder: (context, state) {
+            final loading = state is AuthLoading;
+            return Column(
+              children: [
+                Center(child: Text(_seconds > 0 ? 'Gửi lại mã sau $_seconds s' : 'Gửi lại mã')),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _seconds > 0 || loading
+                          ? null
+                          : () async {
+                              // call mock resend API via cubit's remote
+                              try {
+                                // using cubit's remote datasource directly is simplest here
+                                await (context.read<AuthCubit>().remote).resendOtp(widget.phone);
+                                _startTimer();
+                                if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mã đã được gửi lại')));
+                              } catch (e) {
+                                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gửi lại thất bại: $e')));
+                              }
+                            },
+                      child: loading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Gửi lại mã'),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
 }
 
 class _BottomMenuItem extends StatelessWidget {
@@ -156,7 +321,7 @@ class _BottomMenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        CircleAvatar(radius: 26, backgroundColor: Colors.blue.shade700, child: Icon(icon, color: Colors.white)),
+        CircleAvatar(radius: 18, backgroundColor: Colors.blue.shade700, child: Icon(icon, color: Colors.white)),
         const SizedBox(height: 8),
         Text(label, style: const TextStyle(fontSize: 12)),
       ],

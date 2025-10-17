@@ -4,6 +4,7 @@ import '../../domain/entities/user_entity.dart';
 abstract class AuthRemoteDataSource {
   Future<SessionEntity> loginWithPassword(String phone, String password);
   Future<SessionEntity> loginWithOtp(String phone, String otp);
+  Future<void> resendOtp(String phone);
   Future<UserEntity> fetchUser();
   Future<void> enableBiometric();
   Future<void> disableBiometric();
@@ -38,6 +39,12 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
       refreshToken: 'mock_refresh_token',
       expiresAt: DateTime.now().add(const Duration(hours: 1)),
     );
+  }
+
+  @override
+  Future<void> resendOtp(String phone) async {
+    // mock: pretend to send OTP
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   @override
