@@ -186,6 +186,9 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
   final List<FocusNode> _nodes = List.generate(6, (_) => FocusNode());
   Timer? _timer;
   int _seconds = 30;
+  String? _errorMessage;
+  String? _infoMessage;
+  bool _submitting = false;
 
   @override
   void initState() {
@@ -229,8 +232,13 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
       final otp = _collectOtp();
       // call cubit to confirm
       try {
+        setState(() {
+          _errorMessage = null;
+          _infoMessage = null;
+          _submitting = true;
+        });
         context.read<AuthCubit>().loginOtp(widget.phone, otp);
-        // show loading by leaving sheet open until auth state changes
+        // keep sheet open; we'll update UI from bloc events
       } catch (_) {}
     }
   }
@@ -269,37 +277,62 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
         BlocConsumer<AuthCubit, AuthState>(
           listener: (context, state) {
             if (state is AuthAuthenticated) {
-              // close sheet on success
-              if (mounted) Navigator.of(context).pop();
+              setState(() {
+                _submitting = false;
+                _errorMessage = null;
+                _infoMessage = 'Xác thực thành công';
+              });
             } else if (state is AuthError) {
-              // show error for OTP failure
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+              setState(() {
+                _errorMessage = state.message;
+                _submitting = false;
+              });
+            } else if (state is AuthLoading) {
+              setState(() {
+                _submitting = true;
+                _errorMessage = null;
+              });
+            } else {
+              setState(() {
+                _submitting = false;
+              });
             }
           },
           builder: (context, state) {
-            final loading = state is AuthLoading;
             return Column(
               children: [
+                if (_errorMessage != null) ...[
+                  Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 8),
+                ],
+                if (_infoMessage != null) ...[
+                  Text(_infoMessage!, style: TextStyle(color: Colors.green.shade700)),
+                  const SizedBox(height: 8),
+                ],
                 Center(child: Text(_seconds > 0 ? 'Gửi lại mã sau $_seconds s' : 'Gửi lại mã')),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: _seconds > 0 || loading
+                      onPressed: _seconds > 0 || _submitting
                           ? null
                           : () async {
                               // call mock resend API via cubit's remote
                               try {
-                                // using cubit's remote datasource directly is simplest here
                                 await (context.read<AuthCubit>().remote).resendOtp(widget.phone);
                                 _startTimer();
-                                if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mã đã được gửi lại')));
+                                setState(() {
+                                  _infoMessage = 'Mã đã được gửi lại';
+                                  _errorMessage = null;
+                                });
                               } catch (e) {
-                                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gửi lại thất bại: $e')));
+                                setState(() {
+                                  _errorMessage = 'Gửi lại thất bại: $e';
+                                });
                               }
                             },
-                      child: loading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Gửi lại mã'),
+                      child: _submitting ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Gửi lại mã'),
                     ),
                   ],
                 ),

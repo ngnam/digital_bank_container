@@ -75,7 +75,7 @@ class _AuthNavState extends State<AuthNav> {
   @override
   void initState() {
     super.initState();
-    _lockService = SessionLockService(timeout: const Duration(seconds: 30))
+    _lockService = SessionLockService(timeout: const Duration(minutes: 1))
       ..onLock = () {
         context.read<AuthCubit>().lockSession();
       };
