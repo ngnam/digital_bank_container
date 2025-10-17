@@ -73,7 +73,7 @@ flutter:
   assets:
     - assets/images/logo.png
 
-# flutter_launcher_icons configuration
+# flutter_launcher_icons configuration flutter pub run flutter_launcher_icons:main
 flutter_icons:
   android: true
   ios: false
