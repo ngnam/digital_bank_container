@@ -12,6 +12,11 @@ abstract class PaymentRepository {
   Future<PaymentResponse> createExternal(PaymentRequest req);
   Future<PaymentResponse> confirm(String paymentId, String otp);
 
+  // Debug / admin helpers (optional)
+  Future<List<Map<String, dynamic>>> getPendingRaw();
+  Future<void> removePendingById(int id);
+  Future<void> retryPendingById(int id);
+
   Future<List<TemplateModel>> getTemplates();
   Future<void> saveTemplate(TemplateModel t);
   Future<List<ScheduleModel>> getSchedules();
@@ -121,6 +126,58 @@ class MockPaymentRepository implements PaymentRepository {
         }
       }
     } catch (_) {}
+  }
+
+  // Debug helpers
+  @override
+  Future<List<Map<String, dynamic>>> getPendingRaw() async {
+    if (localDb == null) return [];
+    return await localDb!.getPendingPayments();
+  }
+
+  @override
+  Future<void> removePendingById(int id) async {
+    if (localDb == null) return;
+    await localDb!.removePendingPayment(id);
+  }
+
+  @override
+  Future<void> retryPendingById(int id) async {
+    if (localDb == null) return;
+    final rows = await localDb!.getPendingPayments();
+    final row = rows.firstWhere((r) => (r['id'] as int) == id, orElse: () => {});
+    if (row.isEmpty) return;
+    // increment attempts counter before retrying to reflect user action
+    await localDb!.incrementPendingAttempts(id);
+    final payloadStr = row['payload'] as String;
+    final payload = jsonDecode(payloadStr) as Map<String, dynamic>;
+    try {
+      if (payload['type'] == 'internal') {
+        final reqJson = payload['request'] as Map<String, dynamic>;
+        final req = PaymentRequest(
+          fromAccountId: reqJson['fromAccountId'] as int,
+          toAccountId: reqJson['toAccountId'] as int?,
+          amount: (reqJson['amount'] as num).toDouble(),
+          description: reqJson['description'] as String?,
+        );
+        await createInternal(req);
+      } else if (payload['type'] == 'external') {
+        final reqJson = payload['request'] as Map<String, dynamic>;
+        final req = PaymentRequest(
+          fromAccountId: reqJson['fromAccountId'] as int,
+          toBankCode: reqJson['toBankCode'] as String?,
+          toAccountNumber: reqJson['toAccountNumber'] as String?,
+          toName: reqJson['toName'] as String?,
+          amount: (reqJson['amount'] as num).toDouble(),
+          description: reqJson['description'] as String?,
+        );
+        await createExternal(req);
+      }
+      await localDb!.removePendingPayment(id);
+    } catch (e) {
+      // leave in queue on failure
+      rethrow;
+    }
   }
 
   @override

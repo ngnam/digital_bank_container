@@ -89,4 +89,10 @@ class PaymentLocalDbImpl implements PaymentLocalDb {
     final db = await database;
     await db.delete('pending_payments', where: 'id = ?', whereArgs: [id]);
   }
+
+  @override
+  Future<void> incrementPendingAttempts(int id) async {
+    final db = await database;
+    await db.rawUpdate('UPDATE pending_payments SET attempts = attempts + 1 WHERE id = ?', [id]);
+  }
 }

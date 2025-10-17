@@ -99,14 +99,19 @@ class _AccountsNavState extends State<AccountsNav> {
       ],
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Accounts Navigation'),
+          title: const Text('KienLongBank'),
           actions: [
             IconButton(
               icon: const Icon(Icons.payment),
               tooltip: 'Payments',
               onPressed: () {
+                // Require an account to be selected before opening payments
+                if (_selectedAccountId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select an account first')));
+                  return;
+                }
                 // Open a small payments menu
-                Navigator.push(context, MaterialPageRoute(builder: (_) => _PaymentsMenu(repository: widget.paymentRepository)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => _PaymentsMenu(repository: widget.paymentRepository, accountId: _selectedAccountId)));
               },
             ),
             IconButton(
@@ -147,7 +152,8 @@ class _AccountsNavState extends State<AccountsNav> {
 
 class _PaymentsMenu extends StatelessWidget {
   final dynamic repository;
-  const _PaymentsMenu({super.key, this.repository});
+  final int? accountId;
+  const _PaymentsMenu({super.key, this.repository, this.accountId});
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +166,7 @@ class _PaymentsMenu extends StatelessWidget {
             title: const Text('New Payment'),
             onTap: () {
               final repo = repository ?? MockPaymentRepository(Dio());
-              Navigator.push(context, MaterialPageRoute(builder: (_) => PaymentFormScreen(repository: repo)));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => PaymentFormScreen(repository: repo, fromAccountId: accountId)));
             },
           ),
           ListTile(

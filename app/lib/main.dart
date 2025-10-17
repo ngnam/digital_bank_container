@@ -20,6 +20,7 @@ import 'features/accounts/presentation/screens/accounts_nav.dart';
 import 'features/payments/data/payment_local_db_impl.dart';
 import 'features/payments/data/payment_repository.dart';
 import 'package:dio/dio.dart';
+import 'features/payments/presentation/screens/pending_payments_screen.dart';
 
 void main() {
   runApp(const RootApp());
@@ -49,9 +50,22 @@ class RootApp extends StatelessWidget {
           ),
         ),
       ],
-        child: const MaterialApp(
+      child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: AuthNav(),
+        theme: ThemeData(
+          scaffoldBackgroundColor: Colors.transparent,
+        ),
+        builder: (context, child) {
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset('assets/images/kienlong_bg.png', fit: BoxFit.cover),
+              ),
+              if (child != null) child,
+            ],
+          );
+        },
       ),
     );
   }
@@ -116,8 +130,22 @@ class _AuthNavState extends State<AuthNav> {
                 onUnlock: () => context.read<AuthCubit>().unlockWithBiometric(),
               )
             : (_user != null
-                ? AccountsNav(paymentRepository: _sharedPaymentRepo)
-                : const LoginScreen()),
+                  ? Scaffold(
+                      body: AccountsNav(paymentRepository: _sharedPaymentRepo),
+                      appBar: AppBar(
+                        title: const Text('KienLongBank'),
+                        actions: [
+                          IconButton(
+                            tooltip: 'Debug pending payments',
+                            icon: const Icon(Icons.bug_report),
+                            onPressed: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => PendingPaymentsScreen(repository: _sharedPaymentRepo)));
+                            },
+                          ),
+                        ],
+                      ),
+                    )
+                  : const LoginScreen()),
       ),
     );
   }
@@ -129,8 +157,8 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Kien Long Bank')),
-      body: const Center(child: Text('Welcome to Kien Long Bank!')),
+      appBar: AppBar(title: const Text('KienLongBank')),
+      body: const Center(child: Text('Welcome to KienLongBank!')),
     );
   }
 }

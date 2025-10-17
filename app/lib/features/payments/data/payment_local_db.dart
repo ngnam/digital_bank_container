@@ -11,4 +11,5 @@ abstract class PaymentLocalDb {
   Future<void> addPendingPayment(Map<String, dynamic> payload);
   Future<List<Map<String, dynamic>>> getPendingPayments();
   Future<void> removePendingPayment(int id);
+  Future<void> incrementPendingAttempts(int id);
 }
