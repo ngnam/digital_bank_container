@@ -129,7 +129,7 @@ class _AuthNavState extends State<AuthNav> {
                               errorBuilder: (context, error, stack) => const SizedBox(width: 30, height: 30, child: Icon(Icons.account_balance)),
                             ),
                             const SizedBox(width: 8),
-                            const Text('KienLongBank'),
+                            const Text('Digital Bank Demo'),
                           ],
                         ),
                         actions: [
@@ -165,7 +165,7 @@ class HomePage extends StatelessWidget {
               errorBuilder: (context, error, stack) => const SizedBox(width: 25, height: 25, child: Icon(Icons.account_balance)),
             ),
             const SizedBox(width: 8),
-            const Text('KienLongBank'),
+            const Text('Digital Bank Demo'),
           ],
         ),
       ),
