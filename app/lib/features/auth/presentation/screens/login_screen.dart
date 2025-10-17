@@ -101,10 +101,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                         );
                                   } else {
                                     // Start login flow and show OTP bottom sheet
-                                    context.read<AuthCubit>().login(
-                                          phoneController.text,
-                                          passwordController.text,
-                                        );
+                                    // context.read<AuthCubit>().login(
+                                    //       phoneController.text,
+                                    //       passwordController.text,
+                                    // );
                                     // open OTP bottom sheet
                                     _showOtpBottomSheet(context, phoneController.text);
                                   }
@@ -189,6 +189,7 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
   String? _errorMessage;
   String? _infoMessage;
   bool _submitting = false;
+  bool _showSuccess = false;
 
   @override
   void initState() {
@@ -223,24 +224,53 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
   String _collectOtp() => _controllers.map((c) => c.text).join();
 
   void _onChanged(int index, String v) {
-    if (v.isEmpty) return;
-    // move focus
+    // handle paste of multiple digits
+    if (v.length > 1) {
+      final chars = v.split('');
+      for (var i = 0; i < chars.length && index + i < 6; i++) {
+        _controllers[index + i].text = chars[i];
+      }
+      // move focus to the next empty or last
+      for (var i = index; i < 6; i++) {
+        if (_controllers[i].text.isEmpty) {
+          _nodes[i].requestFocus();
+          return;
+        }
+      }
+      // all filled -> submit
+      final otp = _collectOtp();
+      _submitOtp(otp);
+      return;
+    }
+
+    // single char change
+    if (v.isEmpty) {
+      // user deleted -> move focus back
+      if (index > 0) {
+        _nodes[index - 1].requestFocus();
+      }
+      return;
+    }
+
+    // move focus forward
     if (index < 5) {
       _nodes[index + 1].requestFocus();
     } else {
       // last digit entered -> trigger OTP submission
       final otp = _collectOtp();
-      // call cubit to confirm
-      try {
-        setState(() {
-          _errorMessage = null;
-          _infoMessage = null;
-          _submitting = true;
-        });
-        context.read<AuthCubit>().loginOtp(widget.phone, otp);
-        // keep sheet open; we'll update UI from bloc events
-      } catch (_) {}
+      _submitOtp(otp);
     }
+  }
+
+  void _submitOtp(String otp) {
+    try {
+      setState(() {
+        _errorMessage = null;
+        _infoMessage = null;
+        _submitting = true;
+      });
+      context.read<AuthCubit>().loginOtp(widget.phone, otp);
+    } catch (_) {}
   }
 
   @override
@@ -258,21 +288,57 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
         const SizedBox(height: 8),
         Text('OTP đã được gửi đến số điện thoại của Quý khách. Vui lòng nhập OTP vào ô dưới đây để xác thực.'),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(6, (i) => SizedBox(
-            width: 42,
-            child: TextField(
-              controller: _controllers[i],
-              focusNode: _nodes[i],
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              maxLength: 1,
-              decoration: const InputDecoration(counterText: ''),
-              onChanged: (v) => _onChanged(i, v),
+            // OTP inputs or success animation
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: _showSuccess
+                  ? Center(
+                      key: const ValueKey('success'),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 8),
+                          AnimatedOpacity(
+                            opacity: _showSuccess ? 1 : 0,
+                            duration: const Duration(milliseconds: 300),
+                            child: AnimatedScale(
+                              scale: _showSuccess ? 1 : 0.6,
+                              duration: const Duration(milliseconds: 300),
+                              child: Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(color: Colors.green.shade700, shape: BoxShape.circle),
+                                child: const Icon(Icons.check, color: Colors.white, size: 40),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
+                    )
+                  : Row(
+                      key: const ValueKey('inputs'),
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: List.generate(6, (i) {
+                        final hasError = _errorMessage != null;
+                        return SizedBox(
+                          width: 42,
+                          child: TextField(
+                            controller: _controllers[i],
+                            focusNode: _nodes[i],
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            maxLength: 1,
+                            decoration: InputDecoration(
+                              counterText: '',
+                              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: hasError ? Colors.red : Colors.grey.shade400)),
+                              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: hasError ? Colors.red : Colors.blue)),
+                            ),
+                            onChanged: (v) => _onChanged(i, v),
+                          ),
+                        );
+                      }),
+                    ),
             ),
-          )),
-        ),
         const SizedBox(height: 12),
         BlocConsumer<AuthCubit, AuthState>(
           listener: (context, state) {
@@ -281,6 +347,18 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
                 _submitting = false;
                 _errorMessage = null;
                 _infoMessage = 'Xác thực thành công';
+                _showSuccess = true;
+              });
+              // close sheet after a short delay; capture navigator to avoid using context across async gap
+              final navigator = Navigator.of(context);
+              Future.delayed(const Duration(milliseconds: 900), () {
+                if (mounted) {
+                  navigator.pop();
+                  // after closing the sheet navigate to the authenticated home (pop to root and let AuthNav show accounts)
+                  Future.microtask(() {
+                    if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+                  });
+                }
               });
             } else if (state is AuthError) {
               setState(() {
