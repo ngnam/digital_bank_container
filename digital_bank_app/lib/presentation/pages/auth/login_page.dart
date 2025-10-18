@@ -29,10 +29,14 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       isScrollControlled: true,
       builder: (_) => Padding(
-        padding: MediaQuery.of(context).viewInsets,
-        child: BlocProvider(
-          create: (_) => OtpCubit()..sendOtp(),
-          child: _OtpSheet(cubit: cubit),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SingleChildScrollView(
+          child: BlocProvider(
+            create: (_) => OtpCubit()..sendOtp(),
+            child: _OtpSheet(cubit: cubit),
+          ),
         ),
       ),
     );
