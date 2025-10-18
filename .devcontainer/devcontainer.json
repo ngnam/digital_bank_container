@@ -1,6 +1,6 @@
 {
   "name": "Flutter Codespace",
-  "image": "ghcr.io/cirruslabs/flutter:stable",
+  "image": "ghcr.io/cirruslabs/flutter:3.24.0",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {},
   },
