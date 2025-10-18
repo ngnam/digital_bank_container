@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Digital Bank',
       theme: lightTheme,
-      initialRoute: HomePage.routeName,
+      initialRoute: '/',
       routes: {
         '/': (_) => const LoginPage(),
         '/dashboard': (_) => const Scaffold(body: Center(child: Text('Dashboard (placeholder)'))),

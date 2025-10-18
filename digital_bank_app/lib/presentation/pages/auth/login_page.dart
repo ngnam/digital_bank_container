@@ -86,8 +86,10 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 12),
                   BlocConsumer<LoginCubit, LoginState>(
+                    listenWhen: (previous, current) => previous.status != current.status,
                     listener: (context, state) {
                       if (state.status == LoginStatus.success) {
+                        // only open OTP sheet when we transition to success
                         _showOtpSheet(context, cubit);
                       } else if (state.status == LoginStatus.otpVerified) {
                         // navigate to DashboardNavigator (placeholder)
