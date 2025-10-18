@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di.dart' as di;
 import 'core/theme.dart';
+import 'presentation/pages/dashboard/dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,13 +25,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Digital Bank',
-      theme: lightTheme,
-      initialRoute: '/',
-      routes: {
-        '/': (_) => const LoginPage(),
-        '/dashboard': (_) => const Scaffold(body: Center(child: Text('Dashboard (placeholder)'))),
-      }
-    );
+        title: 'Digital Bank',
+        theme: lightTheme,
+        initialRoute: '/',
+        routes: {
+          '/': (_) => const LoginPage(),
+          '/dashboard': (_) => const DashboardPage(),
+        });
   }
 }
