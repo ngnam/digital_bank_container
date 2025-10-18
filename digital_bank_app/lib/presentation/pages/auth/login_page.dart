@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit/auth/login_cubit.dart';
 import '../../cubit/auth/login_state.dart';
+import '../../cubit/auth/otp_cubit.dart';
+import '../../cubit/auth/otp_state.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -28,7 +30,10 @@ class _LoginPageState extends State<LoginPage> {
       isScrollControlled: true,
       builder: (_) => Padding(
         padding: MediaQuery.of(context).viewInsets,
-        child: _OtpSheet(cubit: cubit),
+        child: BlocProvider(
+          create: (_) => OtpCubit()..sendOtp(),
+          child: _OtpSheet(cubit: cubit),
+        ),
       ),
     );
   }
@@ -87,6 +92,8 @@ class _LoginPageState extends State<LoginPage> {
                       } else if (state.status == LoginStatus.otpVerified) {
                         // navigate to DashboardNavigator (placeholder)
                         Navigator.of(context).pushReplacementNamed('/dashboard');
+                      } else if (state.status == LoginStatus.failure) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message ?? 'Lỗi đăng nhập')));
                       }
                     },
                     builder: (context, state) {
@@ -110,15 +117,15 @@ class _LoginPageState extends State<LoginPage> {
             Container(
               color: Colors.grey[100],
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  const _BottomNavItem(icon: Icons.fingerprint, label: 'eToken'),
-                  const _BottomNavItem(icon: Icons.qr_code_scanner, label: 'QR Scan'),
-                  const _BottomNavItem(icon: Icons.support_agent, label: 'Hỗ trợ'),
-                  const _BottomNavItem(icon: Icons.map, label: 'Mạng lưới'),
+                children: <Widget>[
+                  _BottomNavItem(icon: Icons.fingerprint, label: 'eToken'),
+                  _BottomNavItem(icon: Icons.qr_code_scanner, label: 'QR Scan'),
+                  _BottomNavItem(icon: Icons.support_agent, label: 'Hỗ trợ'),
+                  _BottomNavItem(icon: Icons.map, label: 'Mạng lưới'),
                 ],
-              ),
+              )
             )
           ],
         ),
@@ -166,52 +173,87 @@ class _OtpSheetState extends State<_OtpSheet> {
 
   String get code => _controllers.map((c) => c.text).join();
 
+  void _onResend(OtpCubit cubit) {
+    cubit.resend();
+    for (var c in _controllers) {
+      c.clear();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final otpCubit = context.read<OtpCubit>();
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text('Nhập mã OTP', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(6, (i) {
-              return SizedBox(
-                width: 40,
-                child: TextField(
-                  controller: _controllers[i],
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  maxLength: 1,
-                  decoration: const InputDecoration(counterText: ''),
-                ),
-              );
-            }),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: BlocBuilder<OtpCubit, OtpState>(
+        builder: (context, state) {
+          final seconds = state.secondsRemaining;
+          final canResend = seconds == 0;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              TextButton(onPressed: () {}, child: const Text('Gửi lại (00:59)')),
-              ElevatedButton(
-                onPressed: () async {
-                  final cub = widget.cubit;
-                  final navigator = Navigator.of(context);
-                  final ok = await cub.verifyOtp(code);
-                  if (!mounted) return;
-                  if (ok) {
-                    navigator.pop();
-                    navigator.pushReplacementNamed('/dashboard');
-                  }
-                },
-                child: const Text('Xác nhận'),
+              const Text('Xác thực OTP', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text('OTP đã được gửi đến số điện thoại của Quý khách. Vui lòng nhập OTP vào ô dưới đây để xác thực.'),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(6, (i) {
+                  return SizedBox(
+                    width: 44,
+                    child: TextField(
+                      controller: _controllers[i],
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      maxLength: 1,
+                      decoration: const InputDecoration(counterText: ''),
+                      onChanged: (v) {
+                        if (v.isNotEmpty) {
+                          if (i + 1 < _controllers.length) {
+                            FocusScope.of(context).nextFocus();
+                          } else {
+                            FocusScope.of(context).unfocus();
+                          }
+                        }
+                        // auto submit when filled
+                        if (_controllers.every((c) => c.text.isNotEmpty)) {
+                          _submit(otpCubit);
+                        }
+                      },
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: canResend ? () => _onResend(otpCubit) : null,
+                    child: Text(canResend ? 'Gửi lại mã' : 'Gửi lại (${seconds}s)'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _submit(otpCubit),
+                    child: const Text('Xác nhận'),
+                  ),
+                ],
               )
             ],
-          )
-        ],
+          );
+        },
       ),
     );
+  }
+
+  Future<void> _submit(OtpCubit otpCubit) async {
+    final nav = Navigator.of(context);
+    final ok = await otpCubit.verifyOtp(code);
+    if (!mounted) return;
+    if (ok) {
+      nav.pop();
+      nav.pushReplacementNamed('/dashboard');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mã OTP không hợp lệ')));
+    }
   }
 }
