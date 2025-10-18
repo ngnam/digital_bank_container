@@ -53,7 +53,12 @@ class _LoginPageState extends State<LoginPage> {
             // Header
             Column(
               children: [
-                Image.asset('assets/images/lauchIcon.png', width: 96, height: 96),
+                Image.asset(
+                  'assets/images/lauchIcon.png',
+                  width: 96,
+                  height: 96,
+                  errorBuilder: (context, error, stackTrace) => const SizedBox(width: 96, height: 96, child: Icon(Icons.account_balance, size: 56)),
+                ),
                 const SizedBox(height: 8),
                 const Text('Digital Bank', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ],

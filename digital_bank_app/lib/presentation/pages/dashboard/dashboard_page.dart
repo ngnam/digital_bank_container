@@ -38,7 +38,11 @@ class _DashboardPageState extends State<DashboardPage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/images/lauchIcon.png', height: 28),
+            Image.asset(
+              'assets/images/lauchIcon.png',
+              height: 28,
+              errorBuilder: (context, error, stackTrace) => const SizedBox(width: 28, height: 28, child: Icon(Icons.account_balance, size: 20)),
+            ),
             const SizedBox(width: 8),
             const Text('Digital Bank'),
           ],

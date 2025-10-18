@@ -30,6 +30,4 @@ Future<void> init() async {
 
   // Register mock repositories for demo (can be replaced with real implementations)
   sl.registerLazySingleton<AuthRepository>(() => MockAuthRepository());
-  // Also register a mock account repository as a fallback for quick demos
-  sl.registerLazySingleton<AccountRepository>(() => MockAccountRepository());
 }
