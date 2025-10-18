@@ -8,6 +8,7 @@ import 'core/di.dart' as di;
 import 'core/constants.dart';
 import 'core/theme.dart';
 import 'presentation/pages/dashboard/dashboard_page.dart';
+import 'presentation/cubit/dashboard/dashboard_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,7 +74,17 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (_) => const LoginPage(),
-          '/dashboard': (_) => const DashboardPage(),
+          '/dashboard': (ctx) {
+            // Prefer DI singleton if registered, otherwise create a cubit for this route
+            if (di.sl.isRegistered<DashboardCubit>()) {
+              final cubit = di.sl<DashboardCubit>();
+              return BlocProvider.value(value: cubit, child: const DashboardPage());
+            }
+            return BlocProvider(
+              create: (_) => DashboardCubit(di.sl())..loadAccounts(),
+              child: const DashboardPage(),
+            );
+          },
         });
   }
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/di.dart' as di;
+import '../../domain/repositories/account_repository.dart';
 import '../cubit/navigation_cubit.dart';
 import '../cubit/navigation_state.dart';
+import '../cubit/dashboard/dashboard_cubit.dart';
 import 'dashboard/dashboard_page.dart';
 
 class NavigationPage extends StatelessWidget {
@@ -19,20 +22,25 @@ class NavigationPage extends StatelessWidget {
 class _NavigationView extends StatelessWidget {
   const _NavigationView({Key? key}) : super(key: key);
 
-  static final _pages = [
-    const DashboardPage(),
-    const _AccountsPage(),
-    const _QrPage(),
-    const _InboxPage(),
-    const _ProfilePage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    // Create pages here so we can wrap DashboardPage with its DashboardCubit provider
+    final pages = [
+      // Provide DashboardCubit (loads accounts immediately)
+      BlocProvider(
+        create: (_) => DashboardCubit(di.sl<AccountRepository>())..loadAccounts(),
+        child: const DashboardPage(),
+      ),
+      const _AccountsPage(),
+      const _QrPage(),
+      const _InboxPage(),
+      const _ProfilePage(),
+    ];
+
     return BlocBuilder<NavigationCubit, NavigationState>(
       builder: (context, state) {
         return Scaffold(
-          body: _pages[state.index],
+          body: pages[state.index],
           floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
           floatingActionButton: FloatingActionButton(
             onPressed: () => context.read<NavigationCubit>().changeIndex(2),

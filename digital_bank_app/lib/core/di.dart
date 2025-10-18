@@ -7,6 +7,16 @@ import '../data/datasources/remote/account_remote_datasource.dart';
 import '../data/repositories/account_repository_impl.dart';
 import '../domain/repositories/account_repository.dart';
 import '../domain/repositories/auth_repository.dart';
+import '../presentation/cubit/dashboard/dashboard_cubit.dart';
+
+/// Optional helper to register DashboardCubit as an application-scoped singleton.
+/// Call `di.registerDashboardCubitSingleton()` from main() if you want the cubit
+/// to be shared across the app (instead of creating a new instance per page).
+void registerDashboardCubitSingleton() {
+  if (!sl.isRegistered<DashboardCubit>()) {
+    sl.registerLazySingleton<DashboardCubit>(() => DashboardCubit(sl<AccountRepository>()));
+  }
+}
 
 // mock implementations (domain mock classes are imported from their own files)
 

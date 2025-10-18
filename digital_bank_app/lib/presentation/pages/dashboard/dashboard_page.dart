@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../presentation/cubit/dashboard/dashboard_cubit.dart';
+import '../../../presentation/cubit/navigation_cubit.dart';
 import '../../../presentation/cubit/dashboard/dashboard_state.dart';
 import '../../../domain/entities/account.dart';
 import 'package:intl/intl.dart';
@@ -33,6 +34,18 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Try to read NavigationCubit if available. If not available (page used standalone),
+    // fall back to local no-op behavior to avoid exceptions.
+    NavigationCubit? navCubit;
+    int navIndex = 0;
+    try {
+      navCubit = context.read<NavigationCubit>();
+      navIndex = navCubit.state.index;
+    } catch (_) {
+      navCubit = null;
+      navIndex = 0;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -133,8 +146,12 @@ class _DashboardPageState extends State<DashboardPage> {
           BottomNavigationBarItem(icon: Icon(Icons.inbox), label: 'Hộp thư'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Cá nhân'),
         ],
-        currentIndex: 0,
-        onTap: (i) {},
+        currentIndex: navIndex,
+        onTap: (i) {
+          if (navCubit != null) {
+            navCubit.changeIndex(i);
+          }
+        },
       ),
     );
   }
