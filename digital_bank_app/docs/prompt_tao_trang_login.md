@@ -35,6 +35,12 @@ runApp(
 ```
 
 2. Thêm route `/dashboard` tới màn hình Dashboard (hiện tại là placeholder).
+```dart
+routes: {
+  '/': (_) => const LoginPage(),
+  '/dashboard': (_) => const Scaffold(body: Center(child: Text('Dashboard (placeholder)'))),
+}
+```
 
 3. Chạy: `flutter run -t lib/main.dart` và thử đăng nhập.
 

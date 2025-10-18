@@ -5,7 +5,7 @@ set -euo pipefail
 TAG="app-dev-release"
 TITLE="Mock Development Release"
 NOTES="Draft release with mock development APK for testing purposes."
-APK_PATH="digital_bank_app/build/app/outputs/flutter-apk/app-dev-release.apk"
+APK_PATH="build/app/outputs/flutter-apk/app-dev-release.apk"
 REPO="ngnam/digital_bank_container"   # TODO: thay bằng repo của bạn, ví dụ: myuser/myapp
 
 # --- Check token ---
