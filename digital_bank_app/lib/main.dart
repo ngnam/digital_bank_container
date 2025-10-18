@@ -13,7 +13,23 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // set a default flavor for non-flavored entrypoints
   currentFlavor = Flavor.dev;
-  await di.init();
+
+  try {
+    await di.init();
+  } catch (e, st) {
+    // If DI fails, show a simple error UI so the device isn't left with a black screen.
+    runApp(MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(title: const Text('Initialization error')),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(child: Text('DI initialization failed:\n\n${e.toString()}\n\n${st.toString()}')),
+        ),
+      ),
+    ));
+    return;
+  }
+
   final repo = di.sl<AuthRepository>();
 
   // Surface uncaught Flutter errors on-screen (useful during debug / QA builds)
