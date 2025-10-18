@@ -24,6 +24,9 @@ class _LoginScreenState extends State<LoginScreen> {
   int _inlineOtpSeconds = 30;
   bool _inlineSubmitting = false;
   String? _inlineOtpError;
+  // Inline individual digit controllers for the top OTP card
+  final List<TextEditingController> _inlineDigitControllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _inlineDigitNodes = List.generate(6, (_) => FocusNode());
 
   @override
   Widget build(BuildContext context) {
@@ -84,98 +87,98 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
 
-                  // Main form
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 420),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextFormField(
-                                controller: phoneController,
-                                decoration: const InputDecoration(labelText: 'Tên tài khoản', hintText: 'Nhập tên tài khoản'),
-                                keyboardType: TextInputType.text,
-                                validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tên tài khoản' : null,
-                              ),
-                              const SizedBox(height: 12),
-                              if (!isOtp)
+                  // Main form centered vertically
+                  Expanded(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
                                 TextFormField(
-                                  controller: passwordController,
-                                  decoration: const InputDecoration(labelText: 'Mật khẩu', hintText: 'Nhập mật khẩu'),
-                                  obscureText: true,
-                                  validator: (v) => (v == null || v.isEmpty) ? 'Vui lòng nhập mật khẩu' : null,
+                                  controller: phoneController,
+                                  decoration: const InputDecoration(labelText: 'Tên tài khoản', hintText: 'Nhập tên tài khoản'),
+                                  keyboardType: TextInputType.text,
+                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tên tài khoản' : null,
                                 ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  TextButton(onPressed: () {}, child: const Text('Quên mật khẩu')),
-                                  TextButton(onPressed: () {}, child: const Text('Đăng ký')),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    if (isOtp) {
-                                      // when inline OTP is active, submission is via the top card
-                                    } else {
-                                      if (_formKey.currentState?.validate() ?? false) {
-                                        // show inline OTP form (simulate sending OTP)
-                                        setState(() {
-                                          isOtp = true;
-                                          _inlineOtpError = null;
-                                        });
-                                        _startInlineOtpTimer();
-                                        // In a real flow, call cubit's login to trigger OTP send
-                                        try {
-                                          // context.read<AuthCubit>().login(phoneController.text, passwordController.text);
-                                        } catch (_) {}
+                                const SizedBox(height: 12),
+                                if (!isOtp)
+                                  TextFormField(
+                                    controller: passwordController,
+                                    decoration: const InputDecoration(labelText: 'Mật khẩu', hintText: 'Nhập mật khẩu'),
+                                    obscureText: true,
+                                    validator: (v) => (v == null || v.isEmpty) ? 'Vui lòng nhập mật khẩu' : null,
+                                  ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    TextButton(onPressed: () {}, child: const Text('Quên mật khẩu')),
+                                    TextButton(onPressed: () {}, child: const Text('Đăng ký')),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      if (isOtp) {
+                                        // when inline OTP is active, submission is via the top card
+                                      } else {
+                                        if (_formKey.currentState?.validate() ?? false) {
+                                          // show inline OTP form (simulate sending OTP)
+                                          setState(() {
+                                            isOtp = true;
+                                            _inlineOtpError = null;
+                                          });
+                                          _startInlineOtpTimer();
+                                          // In a real flow, call cubit's login to trigger OTP send
+                                          try {
+                                            // context.read<AuthCubit>().login(phoneController.text, passwordController.text);
+                                          } catch (_) {}
+                                        }
                                       }
-                                    }
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 14.0),
-                                    child: Text('Đăng nhập', style: TextStyle(fontSize: 16)),
+                                    },
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 14.0),
+                                      child: Text('Đăng nhập', style: TextStyle(fontSize: 16)),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
 
-                  // Bottom menu
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 80.0),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _BottomMenuItem(icon: Icons.phonelink_lock, label: 'eToken'),
-                            const SizedBox(width: 24),
-                            _BottomMenuItem(icon: Icons.qr_code, label: 'QR Scan'),
-                            const SizedBox(width: 24),
-                            _BottomMenuItem(icon: Icons.support_agent, label: 'Hỗ trợ'),
-                            const SizedBox(width: 24),
-                            _BottomMenuItem(icon: Icons.public, label: 'Mạng lưới'),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 8),
                 ],
               ),
             );
           },
+        ),
+        // Move bottom menu to bottomNavigationBar so it's fixed at bottom
+        bottomNavigationBar: Container(
+          color: Colors.transparent,
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _BottomMenuItem(icon: Icons.phonelink_lock, label: 'eToken'),
+              const SizedBox(width: 24),
+              _BottomMenuItem(icon: Icons.qr_code, label: 'QR Scan'),
+              const SizedBox(width: 24),
+              _BottomMenuItem(icon: Icons.support_agent, label: 'Hỗ trợ'),
+              const SizedBox(width: 24),
+              _BottomMenuItem(icon: Icons.public, label: 'Mạng lưới'),
+            ],
+          ),
         ),
       ),
     );
@@ -200,12 +203,21 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     });
+    // wire digit controllers to update the combined controller and handle focus
+    for (var i = 0; i < 6; i++) {
+      _inlineDigitControllers[i].addListener(() {
+        final combined = _inlineDigitControllers.map((c) => c.text).join();
+        _inlineOtpController.text = combined;
+      });
+    }
   }
 
   @override
   void dispose() {
     _inlineOtpTimer?.cancel();
     _inlineOtpController.dispose();
+    for (final c in _inlineDigitControllers) c.dispose();
+    for (final n in _inlineDigitNodes) n.dispose();
     phoneController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -261,15 +273,57 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 6),
               Text('OTP đã được gửi tới: ${phoneController.text}', style: const TextStyle(fontSize: 13)),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: _inlineOtpController,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                decoration: InputDecoration(
-                  labelText: 'Nhập mã OTP',
-                  counterText: '',
-                  errorText: _inlineOtpError,
-                ),
+              // 6 individual digit inputs for better UX
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(6, (i) {
+                  final hasError = _inlineOtpError != null;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: SizedBox(
+                      width: 42,
+                      child: TextField(
+                        controller: _inlineDigitControllers[i],
+                        focusNode: _inlineDigitNodes[i],
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        maxLength: 1,
+                        decoration: InputDecoration(
+                          counterText: '',
+                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: hasError ? Colors.red : Colors.grey.shade400)),
+                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: hasError ? Colors.red : Colors.blue)),
+                        ),
+                        onChanged: (v) {
+                          // handle paste/multi-digit input
+                          if (v.length > 1) {
+                            final chars = v.split('');
+                            for (var j = 0; j < chars.length && i + j < 6; j++) {
+                              _inlineDigitControllers[i + j].text = chars[j];
+                            }
+                            // move focus
+                            for (var j = i; j < 6; j++) {
+                              if (_inlineDigitControllers[j].text.isEmpty) {
+                                _inlineDigitNodes[j].requestFocus();
+                                return;
+                              }
+                            }
+                            // all filled -> combined controller listener will trigger submit
+                            return;
+                          }
+
+                          if (v.isEmpty) {
+                            if (i > 0) _inlineDigitNodes[i - 1].requestFocus();
+                            return;
+                          }
+                          // move focus forward
+                          if (i < 5) {
+                            _inlineDigitNodes[i + 1].requestFocus();
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                }),
               ),
               const SizedBox(height: 8),
               Row(

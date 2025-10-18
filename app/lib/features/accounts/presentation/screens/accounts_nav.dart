@@ -164,6 +164,8 @@ class _AccountsNavState extends State<AccountsNav> {
     });
   }
 
+  bool _initialSelectionPersisted = false;
+
   @override
   Widget build(BuildContext context) {
     Widget body;
@@ -219,21 +221,35 @@ class _AccountsNavState extends State<AccountsNav> {
         BlocProvider<AccountListCubit>(
           create: (_) => AccountListCubit(GetAccounts(_repo)),
         ),
-        BlocProvider<SelectedAccountCubit>(
-          create: (_) => SelectedAccountCubit(),
-        ),
+        // SelectedAccountCubit is provided at app root (in main.dart)
         if (_selectedIndex == 2 && _selectedAccountId != null)
           BlocProvider<TransactionHistoryCubit>(
             create: (_) => TransactionHistoryCubit(_getTransactions),
           ),
       ],
-      child: Scaffold(
-        appBar: AppBar(
+      // Use a Builder so we can access a BuildContext that's a descendant of
+      // the MultiBlocProvider providers. This lets us persist the initial
+      // selected account into SelectedAccountCubit after the providers exist.
+      child: Builder(
+        builder: (ctx) {
+          // Persist initial selection once into SelectedAccountCubit if present
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!_initialSelectionPersisted && _selectedAccount != null) {
+              try {
+                final sel = BlocProvider.of<SelectedAccountCubit>(ctx);
+                sel.select(_selectedAccount);
+                _initialSelectionPersisted = true;
+              } catch (_) {}
+            }
+          });
+
+          return Scaffold(
+            appBar: AppBar(
           centerTitle: true,
           title: GestureDetector(
             onTap: () {
-              // open accounts list by navigating to Accounts tab
-              setState(() => _selectedIndex = 0);
+              // open the account picker when tapping the title
+              _showAccountPicker();
             },
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -311,7 +327,7 @@ class _AccountsNavState extends State<AccountsNav> {
           ],
         ),
         body: body,
-        bottomNavigationBar: BottomNavigationBar(
+            bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           type: BottomNavigationBarType.fixed,
@@ -322,9 +338,11 @@ class _AccountsNavState extends State<AccountsNav> {
             BottomNavigationBarItem(icon: Icon(Icons.mail), label: 'Hòm thư'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Cá nhân'),
           ],
-        ),
-      ),
-    );
+            ),
+          ); // end Scaffold
+        }, // end builder
+      ), // end Builder
+    ); // end MultiBlocProvider
   }
 
   Widget _buildTile({required IconData icon, required String label, required VoidCallback onTap}) {
