@@ -1,8 +1,9 @@
 {
   "name": "Flutter Codespace",
-  "image": "ghcr.io/cirruslabs/flutter:3.24.0",
+  "image": "ghcr.io/cirruslabs/flutter:stable",
   "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {}
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers/features/android:1": {}
   },
   "postCreateCommand": "flutter pub get"
 }
