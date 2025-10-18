@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../presentation/cubit/dashboard/dashboard_cubit.dart';
 import '../../../presentation/cubit/dashboard/dashboard_state.dart';
 import '../../../domain/entities/account.dart';
+import 'package:intl/intl.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({Key? key}) : super(key: key);
@@ -13,6 +14,7 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   bool _hideBalance = false;
+  String? _selectedAccountId;
 
   @override
   void initState() {
@@ -21,10 +23,12 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   String _formatMoney(double v, String currency) {
-    // simple formatting
-    final formatted = v.toStringAsFixed(2).replaceAllMapped(RegExp(r"\B(?=(\d{3})+(?!\d))"), (m) => ',');
-    if (currency == 'VND') return '$formatted Đồng';
-    return '\$$formatted';
+    if (currency.toUpperCase() == 'VND') {
+      final f = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
+      return f.format(v);
+    }
+    final f = NumberFormat.simpleCurrency(locale: 'en_US', name: currency);
+    return f.format(v);
   }
 
   @override
@@ -50,7 +54,8 @@ class _DashboardPageState extends State<DashboardPage> {
               builder: (context, state) {
                 if (state.status == DashboardStatus.loading) return const CircularProgressIndicator();
                 final accounts = state.accounts;
-                final current = accounts.isNotEmpty ? accounts.first : Account(id: '', name: '-', number: '-', balance: 0, currency: 'VND');
+                final current = accounts.firstWhere((a) => a.id == (_selectedAccountId ?? accounts.first.id), orElse: () => accounts.isNotEmpty ? accounts.first : Account(id: '', name: '-', number: '-', balance: 0, currency: 'VND'));
+                _selectedAccountId ??= accounts.isNotEmpty ? accounts.first.id : null;
                 return Card(
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
@@ -75,9 +80,13 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                         ),
                         DropdownButton<String>(
-                          value: accounts.isNotEmpty ? accounts.first.id : null,
+                          value: _selectedAccountId,
                           items: accounts.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                          onChanged: (v) {},
+                          onChanged: (v) {
+                            setState(() {
+                              _selectedAccountId = v;
+                            });
+                          },
                         )
                       ],
                     ),

@@ -5,6 +5,9 @@ import '../core/constants.dart';
 import '../data/datasources/remote/account_remote_datasource.dart';
 import '../data/repositories/account_repository_impl.dart';
 import '../domain/repositories/account_repository.dart';
+import '../domain/repositories/auth_repository.dart';
+
+// mock implementations (domain mock classes are imported from their own files)
 
 final sl = GetIt.instance;
 
@@ -24,4 +27,9 @@ Future<void> init() async {
 
   // Register repository implementation which uses the remote datasource
   sl.registerLazySingleton<AccountRepository>(() => AccountRepositoryImpl(remote: sl<AccountRemoteDataSource>()));
+
+  // Register mock repositories for demo (can be replaced with real implementations)
+  sl.registerLazySingleton<AuthRepository>(() => MockAuthRepository());
+  // Also register a mock account repository as a fallback for quick demos
+  sl.registerLazySingleton<AccountRepository>(() => MockAccountRepository());
 }
