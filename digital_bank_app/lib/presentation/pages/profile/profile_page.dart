@@ -18,17 +18,12 @@ class ProfilePage extends StatelessWidget {
   Future<bool?> _confirmLogout(BuildContext context) {
     return showDialog<bool>(
       context: context,
-      useRootNavigator: true,
       builder: (ctx) => AlertDialog(
         title: const Text('Xác nhận'),
         content: const Text('Bạn có chắc muốn đăng xuất?'),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Hủy')),
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('Ok')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Hủy')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Ok')),
         ],
       ),
     );
@@ -97,7 +92,7 @@ class ProfilePage extends StatelessWidget {
                   onTap: () async {
                     final profileCubit = context.read<ProfileCubit>();
                     final confirmed = await _confirmLogout(context);
-                    if (confirmed != null && confirmed == true) {
+                    if (confirmed == true) {
                       await profileCubit.logout();
                     }
                   },
