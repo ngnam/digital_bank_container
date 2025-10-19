@@ -47,21 +47,32 @@ class _DashboardPageState extends State<DashboardPage> {
     }
 
     return Scaffold(
+      // AppBar with custom background and rounded bottom corners
       appBar: AppBar(
+        backgroundColor: const Color(0xFF2D2A78),
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // logo (if the asset supports tinting it can be colored white)
             Image.asset(
               'assets/images/lauchIcon.png',
               height: 28,
-              errorBuilder: (context, error, stackTrace) => const SizedBox(width: 28, height: 28, child: Icon(Icons.account_balance, size: 20)),
+              // keep error fallback
+              errorBuilder: (context, error, stackTrace) => const SizedBox(width: 28, height: 28, child: Icon(Icons.account_balance, size: 20, color: Colors.white)),
             ),
             const SizedBox(width: 8),
-            const Text('Digital Bank'),
+            const Text('DigitalBank', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ],
         ),
         centerTitle: true,
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.notifications))],
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.notifications, color: Colors.white)),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -73,7 +84,12 @@ class _DashboardPageState extends State<DashboardPage> {
                 final accounts = state.accounts;
                 final current = accounts.firstWhere((a) => a.id == (_selectedAccountId ?? accounts.first.id), orElse: () => accounts.isNotEmpty ? accounts.first : Account(id: '', name: '-', number: '-', balance: 0, currency: 'VND'));
                 _selectedAccountId ??= accounts.isNotEmpty ? accounts.first.id : null;
-                return Card(
+                // White card with bottom shadow and higher elevation (z-index: 1)
+                return Material(
+                  elevation: 6,
+                  shadowColor: const Color(0xFFDDDDDD),
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Row(
