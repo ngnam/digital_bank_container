@@ -71,8 +71,9 @@ class _DashboardPageState extends State<DashboardPage> {
           IconButton(onPressed: () {}, icon: const Icon(Icons.notifications, color: Colors.white)),
         ],
       ),
+      // keep content flush with AppBar (top padding 0) so the dark wrapper sits against the AppBar
       body: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.fromLTRB(12.0, 0, 12.0, 12.0),
         child: Column(
           children: [
             BlocBuilder<DashboardCubit, DashboardState>(
@@ -81,44 +82,48 @@ class _DashboardPageState extends State<DashboardPage> {
                 final accounts = state.accounts;
                 final current = accounts.firstWhere((a) => a.id == (_selectedAccountId ?? accounts.first.id), orElse: () => accounts.isNotEmpty ? accounts.first : Account(id: '', name: '-', number: '-', balance: 0, currency: 'VND'));
                 _selectedAccountId ??= accounts.isNotEmpty ? accounts.first.id : null;
-                // Account block: compressed horizontally by 6px on each side,
-                // split into top (dark) and bottom (white) halves with a subtle bottom shadow.
+                // Account block: compressed horizontally by 6px on each side.
+                // Outer dark wrapper sits flush under the AppBar; inside it we show
+                // a white inner box with account name/number (black text).
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6.0),
                   child: Container(
-                    // shadow wrapper
+                    // Outer dark wrapper + shadow
                     decoration: BoxDecoration(
+                      color: const Color(0xFF2D2A78),
                       boxShadow: [BoxShadow(color: const Color(0xFFDDDDDD).withOpacity(1.0), blurRadius: 6, offset: const Offset(0, 3))],
-                      borderRadius: BorderRadius.circular(0),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Top half: dark background with rounded bottom corners
+                        // Top wrapper (full width dark background). Inner white box shows account name/number.
                         Container(
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF2D2A78),
-                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-                          ),
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(current.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                                    const SizedBox(height: 6),
-                                    Text('Số TK: ${current.number}', style: const TextStyle(color: Colors.white70)),
-                                  ],
+                          // no top margin/padding so it sits flush under AppBar
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                          color: Colors.transparent,
+                          child: Container(
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8.0)),
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(current.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                                      const SizedBox(height: 6),
+                                      Text('Số TK: ${current.number}', style: const TextStyle(color: Colors.black54)),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              // small placeholder icon on top right
-                              const Icon(Icons.account_balance, color: Colors.white),
-                            ],
+                                const SizedBox(width: 8),
+                                const Icon(Icons.account_balance, color: Colors.black54),
+                              ],
+                            ),
                           ),
                         ),
+
                         // Bottom half: white background containing balance and account selector
                         Container(
                           color: Colors.white,
