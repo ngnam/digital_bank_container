@@ -75,11 +75,12 @@ class _DashboardPageState extends State<DashboardPage> {
                 // with rounded bottom corners; inner top white box has rounded top corners only
                 return Stack(
                   children: [
-                    // Outer wrapper: nền tím full width, chỉ phủ nửa trên
+                    // Outer wrapper: nền tím chỉ phủ phía sau card trên
                     Align(
                       alignment: Alignment.topCenter,
                       child: Container(
-                        height: 120, // chiều cao nửa trên (tùy chỉnh)
+                        // chiều cao nền tím bằng chiều cao card trên
+                        height: 100, // tuỳ chỉnh theo UI
                         margin: const EdgeInsets.symmetric(horizontal: -12.0),
                         decoration: const BoxDecoration(
                           color: Color(0xFF2D2A78),
@@ -97,21 +98,13 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         // Card trên
                         Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 12.0, vertical: 8.0),
-                          decoration: BoxDecoration(
+                          margin: const EdgeInsets.symmetric(horizontal: 12.0),
+                          decoration: const BoxDecoration(
                             color: Colors.white,
-                            borderRadius: const BorderRadius.only(
+                            borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(12),
                               topRight: Radius.circular(12),
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFDDDDDD).withOpacity(1.0),
-                                blurRadius: 6,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
                           ),
                           padding: const EdgeInsets.all(12.0),
                           child: Row(
@@ -138,10 +131,9 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                         ),
 
-                        // Card dưới
+                        // Card dưới (sát card trên, không margin dọc)
                         Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 12.0, vertical: 8.0),
+                          margin: const EdgeInsets.symmetric(horizontal: 12.0),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: const BorderRadius.only(
@@ -152,7 +144,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               BoxShadow(
                                 color: const Color(0xFFDDDDDD).withOpacity(1.0),
                                 blurRadius: 6,
-                                offset: const Offset(0, -3), // shadow hướng lên
+                                offset: const Offset(0, 3), // shadow đổ xuống
                               ),
                             ],
                           ),
