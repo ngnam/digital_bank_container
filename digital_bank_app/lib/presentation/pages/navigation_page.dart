@@ -5,7 +5,9 @@ import '../../domain/repositories/account_repository.dart';
 import '../cubit/navigation_cubit.dart';
 import '../cubit/navigation_state.dart';
 import '../cubit/dashboard/dashboard_cubit.dart';
+import '../cubit/profile/profile_cubit.dart';
 import 'dashboard/dashboard_page.dart';
+import 'profile/profile_page.dart';
 
 class NavigationPage extends StatelessWidget {
   const NavigationPage({Key? key}) : super(key: key);
@@ -37,7 +39,10 @@ class _NavigationView extends StatelessWidget {
       const _AccountsPage(),
       const _QrPage(),
       const _InboxPage(),
-      const _ProfilePage(),
+      di.sl.isRegistered<ProfileCubit>()
+          ? BlocProvider.value(
+              value: di.sl<ProfileCubit>(), child: const ProfilePage())
+          : const ProfilePage(),
     ];
 
     return BlocBuilder<NavigationCubit, NavigationState>(
@@ -172,8 +177,8 @@ class _InboxPage extends StatelessWidget {
   Widget build(BuildContext context) => const Center(child: Text('Hộp thư'));
 }
 
-class _ProfilePage extends StatelessWidget {
-  const _ProfilePage();
-  @override
-  Widget build(BuildContext context) => const Center(child: Text('Cá nhân'));
-}
+// class _ProfilePage extends StatelessWidget {
+//   const _ProfilePage();
+//   @override
+//   Widget build(BuildContext context) => const Center(child: Text('Cá nhân'));
+// }

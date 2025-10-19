@@ -5,6 +5,7 @@ abstract class AuthRepository {
   Future<bool> login(String username, String password);
   Future<bool> verifyOtp(String code);
   Future<User?> getCurrentUser();
+  Future<void> logout();
 }
 
 /// A mock implementation used for demo and tests
@@ -30,5 +31,12 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<User?> getCurrentUser() async {
     return _user;
+  }
+
+  @override
+  Future<void> logout() async {
+    // simulate network / local cleanup
+    await Future.delayed(const Duration(milliseconds: 200));
+    _user = null;
   }
 }

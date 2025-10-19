@@ -30,6 +30,7 @@ class _MenuGridState extends State<MenuGrid> {
     Icons.contacts,
     Icons.star,
     Icons.home,
+    Icons.settings
   ];
 
   final titles = [
@@ -52,6 +53,7 @@ class _MenuGridState extends State<MenuGrid> {
     'Danh bạ thụ hưởng',
     'Tài khoản số đẹp',
     'Vay mua nhà',
+    'Cài đặt chung',
   ];
 
   final newMenuTitles = {
