@@ -5,7 +5,6 @@ import '../../domain/repositories/account_repository.dart';
 import '../cubit/navigation_cubit.dart';
 import '../cubit/navigation_state.dart';
 import '../cubit/dashboard/dashboard_cubit.dart';
-import '../cubit/profile/profile_cubit.dart';
 import 'dashboard/dashboard_page.dart';
 import 'profile/profile_page.dart';
 

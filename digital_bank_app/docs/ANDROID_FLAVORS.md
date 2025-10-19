@@ -29,7 +29,7 @@ android {
 Then build with the flavor and target file:
 
 ```bash
-flutter build apk --flavor dev -t lib/main_dev.dart
+flutter build apk --flavor dev -t lib/main_dev.dart -v
 flutter build apk --flavor staging -t lib/main_staging.dart
 flutter build apk --flavor prod -t lib/main_prod.dart
 ```

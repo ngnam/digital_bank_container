@@ -19,7 +19,6 @@ class ProfilePage extends StatelessWidget {
     return showDialog<bool>(
       context: context,
       useRootNavigator: true,
-      barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('Xác nhận'),
         content: const Text('Bạn có chắc muốn đăng xuất?'),
