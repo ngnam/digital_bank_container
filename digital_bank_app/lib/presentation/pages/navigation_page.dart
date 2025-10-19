@@ -28,8 +28,12 @@ class _NavigationView extends StatelessWidget {
     final pages = [
       // Provide DashboardCubit (use DI singleton if registered, otherwise create a new one)
       di.sl.isRegistered<DashboardCubit>()
-          ? BlocProvider.value(value: di.sl<DashboardCubit>(), child: const DashboardPage())
-          : BlocProvider(create: (_) => DashboardCubit(di.sl<AccountRepository>())..loadAccounts(), child: const DashboardPage()),
+          ? BlocProvider.value(
+              value: di.sl<DashboardCubit>(), child: const DashboardPage())
+          : BlocProvider(
+              create: (_) =>
+                  DashboardCubit(di.sl<AccountRepository>())..loadAccounts(),
+              child: const DashboardPage()),
       const _AccountsPage(),
       const _QrPage(),
       const _InboxPage(),
@@ -62,31 +66,61 @@ class _NavigationView extends StatelessWidget {
               child: SizedBox.expand(child: pages[state.index]),
             ),
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerDocked,
           floatingActionButton: FloatingActionButton(
             onPressed: () => context.read<NavigationCubit>().changeIndex(2),
             child: const Icon(Icons.qr_code_scanner, size: 32),
           ),
-          bottomNavigationBar: BottomAppBar(
-            color: Colors.white, // đổi background thành màu trắng
-            shape: const CircularNotchedRectangle(),
-            notchMargin: 6.0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    _navItem(context, icon: Icons.home, label: 'Trang chủ', index: 0, current: state.index),
-                    _navItem(context, icon: Icons.account_balance, label: 'Tài khoản', index: 1, current: state.index),
-                  ],
-                ),
-                Row(
-                  children: [
-                    _navItem(context, icon: Icons.inbox, label: 'Hộp thư', index: 3, current: state.index),
-                    _navItem(context, icon: Icons.person, label: 'Cá nhân', index: 4, current: state.index),
-                  ],
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFDDDDDD).withOpacity(1.0),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2), // đổ bóng lên trên
                 ),
               ],
+            ),
+            child: BottomAppBar(
+              color: Colors.transparent, // để màu nền lấy từ Container
+              elevation: 0, // bỏ shadow mặc định
+              shape: const CircularNotchedRectangle(),
+              notchMargin: 6.0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      _navItem(context,
+                          icon: Icons.home,
+                          label: 'Trang chủ',
+                          index: 0,
+                          current: state.index),
+                      _navItem(context,
+                          icon: Icons.account_balance,
+                          label: 'Tài khoản',
+                          index: 1,
+                          current: state.index),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      _navItem(context,
+                          icon: Icons.inbox,
+                          label: 'Hộp thư',
+                          index: 3,
+                          current: state.index),
+                      _navItem(context,
+                          icon: Icons.person,
+                          label: 'Cá nhân',
+                          index: 4,
+                          current: state.index),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -94,7 +128,11 @@ class _NavigationView extends StatelessWidget {
     );
   }
 
-  Widget _navItem(BuildContext context, {required IconData icon, required String label, required int index, required int current}) {
+  Widget _navItem(BuildContext context,
+      {required IconData icon,
+      required String label,
+      required int index,
+      required int current}) {
     final selected = index == current;
     return MaterialButton(
       minWidth: 64,
@@ -102,9 +140,14 @@ class _NavigationView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: selected ? Theme.of(context).primaryColor : Colors.grey),
+          Icon(icon,
+              color: selected ? Theme.of(context).primaryColor : Colors.grey),
           const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: selected ? Theme.of(context).primaryColor : Colors.grey, fontSize: 11)),
+          Text(label,
+              style: TextStyle(
+                  color:
+                      selected ? Theme.of(context).primaryColor : Colors.grey,
+                  fontSize: 11)),
         ],
       ),
     );

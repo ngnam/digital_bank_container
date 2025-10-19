@@ -37,6 +37,7 @@ class _DashboardPageState extends State<DashboardPage> {
     // Dashboard does not manage navigation locally; NavigationPage handles it.
 
     return Scaffold(
+      backgroundColor: Colors.white, // nền trắng cho body
       // AppBar with custom background (no rounded corners)
       appBar: AppBar(
         backgroundColor: const Color(0xFF2D2A78),
@@ -205,10 +206,42 @@ class _DashboardPageState extends State<DashboardPage> {
             const Expanded(
               child: MenuGrid(),
             ),
+            // Slider tin tức / quảng cáo
+            SizedBox(
+              height: 120, // chiều cao slider
+              child: PageView(
+                children: [
+                  _newsCard('Khuyến mãi lớn tháng 10', Colors.orange),
+                  _newsCard('Ưu đãi thẻ tín dụng', Colors.blue),
+                  _newsCard('Tin tức ngân hàng mới nhất', Colors.green),
+                ],
+              ),
+            ),
           ],
         ),
       ),
       // Navigation is handled centrally by NavigationPage (BottomAppBar + FAB)
     );
   }
+}
+
+Widget _newsCard(String title, Color color) {
+  return Container(
+    margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Center(
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    ),
+  );
 }

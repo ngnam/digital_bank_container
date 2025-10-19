@@ -96,20 +96,25 @@ class _MenuGridState extends State<MenuGrid> {
           ),
         ),
 
-        // Indicator
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(2, (index) {
-            return Container(
-              margin: const EdgeInsets.all(4.0),
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _currentPage == index ? Colors.blue : Colors.grey,
-              ),
-            );
-          }),
+        // Indicator (fixed height so it reliably shows under the PageView)
+        SizedBox(
+          height: 28,
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(2, (index) {
+                return Container(
+                  margin: const EdgeInsets.all(4.0),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentPage == index ? Colors.blue : Colors.grey,
+                  ),
+                );
+              }),
+            ),
+          ),
         ),
       ],
     );
