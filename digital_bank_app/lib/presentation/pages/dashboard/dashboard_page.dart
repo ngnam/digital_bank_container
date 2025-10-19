@@ -47,13 +47,10 @@ class _DashboardPageState extends State<DashboardPage> {
     }
 
     return Scaffold(
-      // AppBar with custom background and rounded bottom corners
+      // AppBar with custom background (no rounded corners)
       appBar: AppBar(
         backgroundColor: const Color(0xFF2D2A78),
         elevation: 0,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -84,43 +81,71 @@ class _DashboardPageState extends State<DashboardPage> {
                 final accounts = state.accounts;
                 final current = accounts.firstWhere((a) => a.id == (_selectedAccountId ?? accounts.first.id), orElse: () => accounts.isNotEmpty ? accounts.first : Account(id: '', name: '-', number: '-', balance: 0, currency: 'VND'));
                 _selectedAccountId ??= accounts.isNotEmpty ? accounts.first.id : null;
-                // White card with bottom shadow and higher elevation (z-index: 1)
-                return Material(
-                  elevation: 6,
-                  shadowColor: const Color(0xFFDDDDDD),
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Row(
+                // Account block: compressed horizontally by 6px on each side,
+                // split into top (dark) and bottom (white) halves with a subtle bottom shadow.
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                  child: Container(
+                    // shadow wrapper
+                    decoration: BoxDecoration(
+                      boxShadow: [BoxShadow(color: const Color(0xFFDDDDDD).withOpacity(1.0), blurRadius: 6, offset: const Offset(0, 3))],
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        // Top half: dark background with rounded bottom corners
+                        Container(
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF2D2A78),
+                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                          ),
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
                             children: [
-                              Text(current.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 6),
-                              Text('Số TK: ${current.number}'),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Text(_hideBalance ? '******' : _formatMoney(current.balance, current.currency), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                  const SizedBox(width: 8),
-                                  IconButton(onPressed: () => setState(() => _hideBalance = !_hideBalance), icon: Icon(_hideBalance ? Icons.visibility_off : Icons.visibility)),
-                                ],
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(current.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                                    const SizedBox(height: 6),
+                                    Text('Số TK: ${current.number}', style: const TextStyle(color: Colors.white70)),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
+                              // small placeholder icon on top right
+                              const Icon(Icons.account_balance, color: Colors.white),
                             ],
                           ),
                         ),
-                        DropdownButton<String>(
-                          value: _selectedAccountId,
-                          items: accounts.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                          onChanged: (v) {
-                            setState(() {
-                              _selectedAccountId = v;
-                            });
-                          },
-                        )
+                        // Bottom half: white background containing balance and account selector
+                        Container(
+                          color: Colors.white,
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Text(_hideBalance ? '******' : _formatMoney(current.balance, current.currency), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                    const SizedBox(width: 8),
+                                    IconButton(onPressed: () => setState(() => _hideBalance = !_hideBalance), icon: Icon(_hideBalance ? Icons.visibility_off : Icons.visibility)),
+                                  ],
+                                ),
+                              ),
+                              DropdownButton<String>(
+                                value: _selectedAccountId,
+                                items: accounts.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
+                                onChanged: (v) {
+                                  setState(() {
+                                    _selectedAccountId = v;
+                                  });
+                                },
+                              )
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
