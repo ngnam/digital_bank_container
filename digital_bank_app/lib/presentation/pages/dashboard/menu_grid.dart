@@ -66,6 +66,27 @@ class _MenuGridState extends State<MenuGrid> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Indicator (fixed height so it reliably shows under the PageView)
+        SizedBox(
+          height: 16,
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(2, (index) {
+                return Container(
+                  margin: const EdgeInsets.all(4.0),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentPage == index ? Colors.blue : Colors.grey,
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+
         // PageView chứa nhiều Grid
         Expanded(
           child: PageView(
@@ -93,27 +114,6 @@ class _MenuGridState extends State<MenuGrid> {
                 }),
               ),
             ],
-          ),
-        ),
-
-        // Indicator (fixed height so it reliably shows under the PageView)
-        SizedBox(
-          height: 28,
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(2, (index) {
-                return Container(
-                  margin: const EdgeInsets.all(4.0),
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _currentPage == index ? Colors.blue : Colors.grey,
-                  ),
-                );
-              }),
-            ),
           ),
         ),
       ],
