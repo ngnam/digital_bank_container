@@ -82,77 +82,77 @@ class _DashboardPageState extends State<DashboardPage> {
                 final accounts = state.accounts;
                 final current = accounts.firstWhere((a) => a.id == (_selectedAccountId ?? accounts.first.id), orElse: () => accounts.isNotEmpty ? accounts.first : Account(id: '', name: '-', number: '-', balance: 0, currency: 'VND'));
                 _selectedAccountId ??= accounts.isNotEmpty ? accounts.first.id : null;
-                // Account block: compressed horizontally by 6px on each side.
-                // Outer dark wrapper sits flush under the AppBar; inside it we show
-                // a white inner box with account name/number (black text).
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                  child: Container(
-                    // Outer dark wrapper + shadow
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2D2A78),
-                      boxShadow: [BoxShadow(color: const Color(0xFFDDDDDD).withOpacity(1.0), blurRadius: 6, offset: const Offset(0, 3))],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Top wrapper (full width dark background). Inner white box shows account name/number.
-                        Container(
-                          // no top margin/padding so it sits flush under AppBar
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                          color: Colors.transparent,
-                          child: Container(
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8.0)),
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(current.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-                                      const SizedBox(height: 6),
-                                      Text('Số TK: ${current.number}', style: const TextStyle(color: Colors.black54)),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.account_balance, color: Colors.black54),
-                              ],
-                            ),
+                // Account block: outer dark wrapper full-width (match AppBar width)
+                // with rounded bottom corners; inner top white box has rounded top corners only
+                return Container(
+                  // cancel the body horizontal padding so this wrapper spans full screen width
+                  margin: const EdgeInsets.symmetric(horizontal: -12.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2D2A78),
+                    boxShadow: [BoxShadow(color: const Color(0xFFDDDDDD).withOpacity(1.0), blurRadius: 6, offset: const Offset(0, 3))],
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Top: dark wrapper with inner white box (rounded top-left/right only)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        color: Colors.transparent,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
                           ),
-                        ),
-
-                        // Bottom half: white background containing balance and account selector
-                        Container(
-                          color: Colors.white,
                           padding: const EdgeInsets.all(12.0),
                           child: Row(
                             children: [
                               Expanded(
-                                child: Row(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(_hideBalance ? '******' : _formatMoney(current.balance, current.currency), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                    const SizedBox(width: 8),
-                                    IconButton(onPressed: () => setState(() => _hideBalance = !_hideBalance), icon: Icon(_hideBalance ? Icons.visibility_off : Icons.visibility)),
+                                    Text(current.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                                    const SizedBox(height: 6),
+                                    Text('Số TK: ${current.number}', style: const TextStyle(color: Colors.black54)),
                                   ],
                                 ),
                               ),
-                              DropdownButton<String>(
-                                value: _selectedAccountId,
-                                items: accounts.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                                onChanged: (v) {
-                                  setState(() {
-                                    _selectedAccountId = v;
-                                  });
-                                },
-                              )
+                              const SizedBox(width: 8),
+                              const Icon(Icons.account_balance, color: Colors.black54),
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+
+                      // Bottom half: white background containing balance and account selector
+                      Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Text(_hideBalance ? '******' : _formatMoney(current.balance, current.currency), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  const SizedBox(width: 8),
+                                  IconButton(onPressed: () => setState(() => _hideBalance = !_hideBalance), icon: Icon(_hideBalance ? Icons.visibility_off : Icons.visibility)),
+                                ],
+                              ),
+                            ),
+                            DropdownButton<String>(
+                              value: _selectedAccountId,
+                              items: accounts.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
+                              onChanged: (v) {
+                                setState(() {
+                                  _selectedAccountId = v;
+                                });
+                              },
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
