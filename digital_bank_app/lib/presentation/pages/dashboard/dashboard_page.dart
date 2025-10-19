@@ -203,13 +203,10 @@ class _DashboardPageState extends State<DashboardPage> {
               },
             ),
             const SizedBox(height: 12),
-            // Grid
-            const Flexible(
-              fit: FlexFit.loose,
-              child: MenuGrid(),
-            ),
-            // Slider tin tức / quảng cáo
+             // Slider tin tức / quảng cáo
             const NewsSlider(),
+            // Grid
+            const Expanded(child: MenuGrid()),
           ],
         ),
       ),
