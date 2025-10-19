@@ -73,28 +73,45 @@ class _DashboardPageState extends State<DashboardPage> {
                 _selectedAccountId ??= accounts.isNotEmpty ? accounts.first.id : null;
                 // Account block: outer dark wrapper full-width (match AppBar width)
                 // with rounded bottom corners; inner top white box has rounded top corners only
-                return Container(
-                  // cancel the body horizontal padding so this wrapper spans full screen width
-                  margin: const EdgeInsets.symmetric(horizontal: -12.0),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2D2A78),
-                    boxShadow: [BoxShadow(color: const Color(0xFFDDDDDD).withOpacity(1.0), blurRadius: 6, offset: const Offset(0, 3))],
-                    // soften bottom corners to match inner white boxes
-                    borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Top: dark wrapper with inner white box (rounded top-left/right only)
-                      Container(
-                        // remove bottom padding so the outer dark wrapper sits flush with the bottom half
-                        padding: const EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 0.0),
-                        color: Colors.transparent,
-                        child: Container(
-                          decoration: const BoxDecoration(
+                return Stack(
+                  children: [
+                    // Outer wrapper: nền tím full width, chỉ phủ nửa trên
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: Container(
+                        height: 120, // chiều cao nửa trên (tùy chỉnh)
+                        margin: const EdgeInsets.symmetric(horizontal: -12.0),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF2D2A78),
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Nội dung: 2 card trắng
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Card trên
+                        Container(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 8.0),
+                          decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(12),
+                              topRight: Radius.circular(12),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFDDDDDD).withOpacity(1.0),
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
                           padding: const EdgeInsets.all(12.0),
                           child: Row(
@@ -103,53 +120,90 @@ class _DashboardPageState extends State<DashboardPage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(current.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                                    Text(current.name,
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black)),
                                     const SizedBox(height: 6),
-                                    Text('Số TK: ${current.number}', style: const TextStyle(color: Colors.black54)),
+                                    Text('Số TK: ${current.number}',
+                                        style: const TextStyle(
+                                            color: Colors.black54)),
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.account_balance, color: Colors.black54),
+                              const Icon(Icons.account_balance,
+                                  color: Colors.black54),
                             ],
                           ),
                         ),
-                      ),
 
-                      // Bottom half: white background containing balance and account selector
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 12.0),
-                        // match bottom corners with outer wrapper so the combined white block appears rounded
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
-                        ),
-                        padding: const EdgeInsets.all(12.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  Text(_hideBalance ? '******' : _formatMoney(current.balance, current.currency), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                  const SizedBox(width: 8),
-                                  IconButton(onPressed: () => setState(() => _hideBalance = !_hideBalance), icon: Icon(_hideBalance ? Icons.visibility_off : Icons.visibility)),
-                                ],
-                              ),
+                        // Card dưới
+                        Container(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(12),
+                              bottomRight: Radius.circular(12),
                             ),
-                            DropdownButton<String>(
-                              value: _selectedAccountId,
-                              items: accounts.map((a) => DropdownMenuItem(value: a.id, child: Text(a.name))).toList(),
-                              onChanged: (v) {
-                                setState(() {
-                                  _selectedAccountId = v;
-                                });
-                              },
-                            )
-                          ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFDDDDDD).withOpacity(1.0),
+                                blurRadius: 6,
+                                offset: const Offset(0, -3), // shadow hướng lên
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      _hideBalance
+                                          ? '******'
+                                          : _formatMoney(current.balance,
+                                              current.currency),
+                                      style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      onPressed: () => setState(
+                                          () => _hideBalance = !_hideBalance),
+                                      icon: Icon(
+                                        _hideBalance
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              DropdownButton<String>(
+                                value: _selectedAccountId,
+                                items: accounts
+                                    .map((a) => DropdownMenuItem(
+                                        value: a.id, child: Text(a.name)))
+                                    .toList(),
+                                onChanged: (v) {
+                                  setState(() {
+                                    _selectedAccountId = v;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 );
               },
             ),
