@@ -79,7 +79,8 @@ class _DashboardPageState extends State<DashboardPage> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF2D2A78),
                     boxShadow: [BoxShadow(color: const Color(0xFFDDDDDD).withOpacity(1.0), blurRadius: 6, offset: const Offset(0, 3))],
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                    // soften bottom corners to match inner white boxes
+                    borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -87,7 +88,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     children: [
                       // Top: dark wrapper with inner white box (rounded top-left/right only)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        // remove bottom padding so the outer dark wrapper sits flush with the bottom half
+                        padding: const EdgeInsets.fromLTRB(12.0, 8.0, 12.0, 0.0),
                         color: Colors.transparent,
                         child: Container(
                           decoration: const BoxDecoration(
@@ -116,7 +118,12 @@ class _DashboardPageState extends State<DashboardPage> {
 
                       // Bottom half: white background containing balance and account selector
                       Container(
-                        color: Colors.white,
+                        margin: const EdgeInsets.symmetric(horizontal: 12.0),
+                        // match bottom corners with outer wrapper so the combined white block appears rounded
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
+                        ),
                         padding: const EdgeInsets.all(12.0),
                         child: Row(
                           children: [
