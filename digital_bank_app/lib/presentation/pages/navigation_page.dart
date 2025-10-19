@@ -39,10 +39,8 @@ class _NavigationView extends StatelessWidget {
       const _AccountsPage(),
       const _QrPage(),
       const _InboxPage(),
-      di.sl.isRegistered<ProfileCubit>()
-          ? BlocProvider.value(
-              value: di.sl<ProfileCubit>(), child: const ProfilePage())
-          : const ProfilePage(),
+      // Profile
+      const ProfilePage(), // để ProfilePage tự lo BlocProvider
     ];
 
     return BlocBuilder<NavigationCubit, NavigationState>(
