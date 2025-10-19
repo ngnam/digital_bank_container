@@ -4,6 +4,7 @@ import '../../../presentation/cubit/dashboard/dashboard_cubit.dart';
 import '../../../presentation/cubit/dashboard/dashboard_state.dart';
 import '../../../domain/entities/account.dart';
 import 'package:intl/intl.dart';
+import 'menu_grid.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({Key? key}) : super(key: key);
@@ -201,69 +202,9 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             const SizedBox(height: 12),
             // Grid
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 4,
-                children: List.generate(12, (i) {
-                  final icons = [
-                    Icons.send,
-                    Icons.savings,
-                    Icons.payment,
-                    Icons.account_balance_wallet,
-                    Icons.payments,
-                    Icons.mobile_friendly,
-                    Icons.contactless,
-                    Icons.history,
-                    Icons.support,
-                    Icons.receipt,
-                    Icons.more_horiz,
-                    Icons.card_giftcard
-                  ];
-                  final titles = [
-                    'Chuyển tiền',
-                    'Tiết kiệm',
-                    'Thanh toán',
-                    'Nạp tiền',
-                    'Rút tiền',
-                    'Nạp ĐT',
-                    'QR Pay',
-                    'Lịch sử',
-                    'Hỗ trợ',
-                    'Hóa đơn',
-                    'Khác',
-                    'Ưu đãi'
-                  ];
-
-                  return InkWell(
-                    onTap: () {},
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Icon trong vòng tròn
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEDEDED), // nền nhạt cho icon
-                            shape: BoxShape.circle,
-                          ),
-                          child:
-                              Icon(icons[i], size: 28, color: Colors.black87),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          titles[i],
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ),
-            )
-
+            const Expanded(
+              child: MenuGrid(),
+            ),
           ],
         ),
       ),
