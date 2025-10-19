@@ -68,6 +68,7 @@ class _NavigationView extends StatelessWidget {
             child: const Icon(Icons.qr_code_scanner, size: 32),
           ),
           bottomNavigationBar: BottomAppBar(
+            color: Colors.white, // đổi background thành màu trắng
             shape: const CircularNotchedRectangle(),
             notchMargin: 6.0,
             child: Row(
