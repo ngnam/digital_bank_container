@@ -9,7 +9,7 @@ class ProfilePage extends StatelessWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
   void _navigateToLogin(BuildContext ctx) {
-    Navigator.of(ctx).pushNamedAndRemoveUntil(
+    Navigator.of(ctx, rootNavigator: true).pushNamedAndRemoveUntil(
       '/', // route name đã khai báo cho LoginPage
       (route) => false, // xoá toàn bộ stack
     );
@@ -18,12 +18,14 @@ class ProfilePage extends StatelessWidget {
   Future<bool?> _confirmLogout(BuildContext context) {
     return showDialog<bool>(
       context: context,
+      useRootNavigator: true,
+      barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('Xác nhận'),
         content: const Text('Bạn có chắc muốn đăng xuất?'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Hủy')),
-          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Ok')),
+          TextButton(onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(false), child: const Text('Hủy')),
+          TextButton(onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(true), child: const Text('Ok')),
         ],
       ),
     );
