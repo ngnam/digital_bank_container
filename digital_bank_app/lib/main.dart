@@ -73,7 +73,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (_) => const LoginPage(),
-              '/dashboard': (_) => const NavigationPage(),
+          '/dashboard': (_) => const NavigationPage(),
         });
   }
 }
