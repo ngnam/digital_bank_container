@@ -26,11 +26,10 @@ class _NavigationView extends StatelessWidget {
   Widget build(BuildContext context) {
     // Create pages here so we can wrap DashboardPage with its DashboardCubit provider
     final pages = [
-      // Provide DashboardCubit (loads accounts immediately)
-      BlocProvider(
-        create: (_) => DashboardCubit(di.sl<AccountRepository>())..loadAccounts(),
-        child: const DashboardPage(),
-      ),
+      // Provide DashboardCubit (use DI singleton if registered, otherwise create a new one)
+      di.sl.isRegistered<DashboardCubit>()
+          ? BlocProvider.value(value: di.sl<DashboardCubit>(), child: const DashboardPage())
+          : BlocProvider(create: (_) => DashboardCubit(di.sl<AccountRepository>())..loadAccounts(), child: const DashboardPage()),
       const _AccountsPage(),
       const _QrPage(),
       const _InboxPage(),
