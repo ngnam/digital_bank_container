@@ -11,7 +11,7 @@ class ProfilePage extends StatelessWidget {
   void _navigateToLogin(BuildContext ctx) {
     Navigator.of(ctx, rootNavigator: true).pushNamedAndRemoveUntil(
       '/', // route name đã khai báo cho LoginPage
-      (route) => false, // xoá toàn bộ stack
+      (route) => false,
     );
   }
 
@@ -19,17 +19,23 @@ class ProfilePage extends StatelessWidget {
     return showDialog<bool>(
       context: context,
       useRootNavigator: true,
-      builder: (ctx) => AlertDialog(
+      barrierDismissible: false,
+      builder: (dialogCtx) => AlertDialog(
         title: const Text('Xác nhận'),
         content: const Text('Bạn có chắc muốn đăng xuất?'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(false), child: const Text('Hủy')),
-          TextButton(onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(true), child: const Text('Ok')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: const Text('Ok'),
+          ),
         ],
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +46,8 @@ class ProfilePage extends StatelessWidget {
           if (state is ProfileLoggedOut) {
             _navigateToLogin(context);
           } else if (state is ProfileError) {
-            final messenger = ScaffoldMessenger.of(context);
-            messenger.showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         child: Scaffold(
@@ -88,11 +94,16 @@ class ProfilePage extends StatelessWidget {
                 color: Colors.white,
                 child: ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text('Đăng xuất',
-                      style: TextStyle(color: Colors.red)),
+                  title: const Text(
+                    'Đăng xuất',
+                    style: TextStyle(color: Colors.red),
+                  ),
                   onTap: () async {
+                    print('tab');
+                    // Lấy cubit trước khi await để tránh cảnh báo use_build_context_synchronously
                     final profileCubit = context.read<ProfileCubit>();
                     final confirmed = await _confirmLogout(context);
+                    print(confirmed);
                     if (confirmed == true) {
                       await profileCubit.logout();
                     }
