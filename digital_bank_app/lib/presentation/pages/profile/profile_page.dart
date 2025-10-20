@@ -99,11 +99,9 @@ class ProfilePage extends StatelessWidget {
                     style: TextStyle(color: Colors.red),
                   ),
                   onTap: () async {
-                    print('tab');
                     // Lấy cubit trước khi await để tránh cảnh báo use_build_context_synchronously
                     final profileCubit = context.read<ProfileCubit>();
                     final confirmed = await _confirmLogout(context);
-                    print(confirmed);
                     if (confirmed == true) {
                       await profileCubit.logout();
                     }

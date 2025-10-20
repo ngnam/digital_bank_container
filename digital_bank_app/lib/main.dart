@@ -72,8 +72,8 @@ class MyApp extends StatelessWidget {
         theme: lightTheme,
         initialRoute: '/',
         routes: {
-          '/': (_) => const LoginPage(),
-          '/dashboard': (_) => const NavigationPage(),
+          '/': (_) => const LoginPage(key: PageStorageKey('login')),
+          '/dashboard': (_) => const NavigationPage(key: PageStorageKey('navigation')),
         });
   }
 }

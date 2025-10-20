@@ -30,16 +30,16 @@ class _NavigationView extends StatelessWidget {
       // Provide DashboardCubit (use DI singleton if registered, otherwise create a new one)
       di.sl.isRegistered<DashboardCubit>()
           ? BlocProvider.value(
-              value: di.sl<DashboardCubit>(), child: const DashboardPage())
+              value: di.sl<DashboardCubit>(), child: const DashboardPage(key: PageStorageKey('dashboard')))
           : BlocProvider(
               create: (_) =>
                   DashboardCubit(di.sl<AccountRepository>())..loadAccounts(),
-              child: const DashboardPage()),
-      const _AccountsPage(),
-      const _QrPage(),
-      const _InboxPage(),
+              child: const DashboardPage(key: PageStorageKey('dashboard'))),
+      const _AccountsPage(key: PageStorageKey('accounts')),
+      const _QrPage(key: PageStorageKey('qrcode')),
+      const _InboxPage(key: PageStorageKey('inbox')),
       // Profile
-      const ProfilePage(), // để ProfilePage tự lo BlocProvider
+      const ProfilePage(key: PageStorageKey('profile')), // để ProfilePage tự lo BlocProvider
     ];
 
     return BlocBuilder<NavigationCubit, NavigationState>(
@@ -61,6 +61,9 @@ class _NavigationView extends StatelessWidget {
                   child: child,
                 ),
               );
+            },
+            layoutBuilder: (currentChild, previousChildren) {
+              return currentChild ?? const SizedBox();
             },
             child: KeyedSubtree(
               // Key the child by the selected index so AnimatedSwitcher knows when to animate
@@ -157,19 +160,19 @@ class _NavigationView extends StatelessWidget {
 }
 
 class _AccountsPage extends StatelessWidget {
-  const _AccountsPage();
+  const _AccountsPage({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) => const Center(child: Text('Tài khoản'));
 }
 
 class _QrPage extends StatelessWidget {
-  const _QrPage();
+  const _QrPage({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) => const Center(child: Text('Quét QR'));
 }
 
 class _InboxPage extends StatelessWidget {
-  const _InboxPage();
+  const _InboxPage({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) => const Center(child: Text('Hộp thư'));
 }
