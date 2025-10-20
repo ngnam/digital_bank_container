@@ -26,25 +26,45 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showOtpSheet(BuildContext context, LoginCubit cubit) {
-  showDialog(
-    context: context,
-    barrierDismissible: true, // Cho phép đóng khi bấm ra ngoài
-    builder: (_) => BlocProvider(
-      create: (_) => OtpCubit()..sendOtp(),
-      child: Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
-        alignment: Alignment.topCenter, // canh popup lên phía trên
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: _OtpSheet(cubit: cubit),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => BlocProvider(
+        create: (_) => OtpCubit()..sendOtp(),
+        child: Dialog(
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+          alignment: Alignment.topCenter,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _OtpSheet(cubit: cubit),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.05), // nền mờ
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.black87),
+                    splashRadius: 20,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
