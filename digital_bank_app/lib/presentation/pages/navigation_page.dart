@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/di.dart' as di;
 import '../../domain/repositories/account_repository.dart';
+import '../../domain/repositories/auth_repository.dart';
 import '../cubit/navigation_cubit.dart';
 import '../cubit/navigation_state.dart';
 import '../cubit/dashboard/dashboard_cubit.dart';
+import '../cubit/profile/profile_cubit.dart';
 import 'dashboard/dashboard_page.dart';
 import 'profile/profile_page.dart';
 
@@ -30,7 +32,8 @@ class _NavigationView extends StatelessWidget {
       // Provide DashboardCubit (use DI singleton if registered, otherwise create a new one)
       di.sl.isRegistered<DashboardCubit>()
           ? BlocProvider.value(
-              value: di.sl<DashboardCubit>(), child: const DashboardPage(key: PageStorageKey('dashboard')))
+              value: di.sl<DashboardCubit>(),
+              child: const DashboardPage(key: PageStorageKey('dashboard')))
           : BlocProvider(
               create: (_) =>
                   DashboardCubit(di.sl<AccountRepository>())..loadAccounts(),
@@ -39,7 +42,13 @@ class _NavigationView extends StatelessWidget {
       const _QrPage(key: PageStorageKey('qrcode')),
       const _InboxPage(key: PageStorageKey('inbox')),
       // Profile
-      const ProfilePage(key: PageStorageKey('profile')), // để ProfilePage tự lo BlocProvider
+      di.sl.isRegistered<ProfileCubit>()
+          ? BlocProvider.value(
+              value: di.sl<ProfileCubit>(),
+              child: const ProfilePage(key: PageStorageKey('profile')))
+          : BlocProvider(
+              create: (_) => ProfileCubit(di.sl<AuthRepository>()..logout()),
+              child: const ProfilePage(key: PageStorageKey('profile'))),
     ];
 
     return BlocBuilder<NavigationCubit, NavigationState>(
