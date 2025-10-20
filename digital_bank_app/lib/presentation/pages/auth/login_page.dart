@@ -25,22 +25,25 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showOtpSheet(BuildContext context, LoginCubit cubit) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+  showDialog(
+    context: context,
+    barrierDismissible: true, // Cho phép đóng khi bấm ra ngoài
+    builder: (_) => BlocProvider(
+      create: (_) => OtpCubit()..sendOtp(),
+      child: Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+        alignment: Alignment.topCenter, // canh popup lên phía trên
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: SingleChildScrollView(
-          child: BlocProvider(
-            create: (_) => OtpCubit()..sendOtp(),
-            child: _OtpSheet(cubit: cubit),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: _OtpSheet(cubit: cubit),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
