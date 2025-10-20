@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit/auth/login_cubit.dart';
 import '../../cubit/auth/login_state.dart';
@@ -206,34 +207,49 @@ class _OtpSheetState extends State<_OtpSheet> {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Xác thực OTP', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('Xác thực OTP',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const Text('OTP đã được gửi đến số điện thoại của Quý khách. Vui lòng nhập OTP vào ô dưới đây để xác thực.'),
+              const Text(
+                  'OTP đã được gửi đến số điện thoại của Quý khách. Vui lòng nhập OTP vào ô dưới đây để xác thực.'),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(6, (i) {
                   return SizedBox(
                     width: 44,
-                    child: TextField(
-                      controller: _controllers[i],
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      maxLength: 1,
-                      decoration: const InputDecoration(counterText: ''),
-                      onChanged: (v) {
-                        if (v.isNotEmpty) {
-                          if (i + 1 < _controllers.length) {
-                            FocusScope.of(context).nextFocus();
-                          } else {
-                            FocusScope.of(context).unfocus();
+                    child: KeyboardListener(
+                      focusNode: FocusNode(), // cần focusNode riêng
+                      onKeyEvent: (event) {
+                        if (event is KeyDownEvent &&
+                            event.logicalKey == LogicalKeyboardKey.backspace) {
+                          // nếu ô hiện tại trống thì nhảy về ô trước
+                          if (_controllers[i].text.isEmpty && i > 0) {
+                            FocusScope.of(context).previousFocus();
+                            _controllers[i - 1].clear();
                           }
                         }
-                        // auto submit when filled
-                        if (_controllers.every((c) => c.text.isNotEmpty)) {
-                          _submit(otpCubit);
-                        }
                       },
+                      child: TextField(
+                        controller: _controllers[i],
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        maxLength: 1,
+                        decoration: const InputDecoration(counterText: ''),
+                        onChanged: (v) {
+                          if (v.isNotEmpty) {
+                            if (i + 1 < _controllers.length) {
+                              FocusScope.of(context).nextFocus();
+                            } else {
+                              FocusScope.of(context).unfocus();
+                            }
+                          }
+                          // auto submit khi đủ 6 ký tự
+                          if (_controllers.every((c) => c.text.isNotEmpty)) {
+                            _submit(otpCubit);
+                          }
+                        },
+                      ),
                     ),
                   );
                 }),
@@ -244,7 +260,8 @@ class _OtpSheetState extends State<_OtpSheet> {
                 children: [
                   TextButton(
                     onPressed: canResend ? () => _onResend(otpCubit) : null,
-                    child: Text(canResend ? 'Gửi lại mã' : 'Gửi lại (${seconds}s)'),
+                    child: Text(
+                        canResend ? 'Gửi lại mã' : 'Gửi lại (${seconds}s)'),
                   ),
                   ElevatedButton(
                     onPressed: () => _submit(otpCubit),
