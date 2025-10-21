@@ -1,24 +1,35 @@
-import 'package:digital_bank_app/domain/repositories/auth_repository.dart';
-import 'package:digital_bank_app/presentation/cubit/auth/login_cubit.dart';
-import 'package:digital_bank_app/presentation/pages/auth/login_page.dart';
+// packages
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:async';
+
+// core
 import 'core/di.dart' as di;
 import 'core/constants.dart';
 import 'core/theme.dart';
 import 'presentation/pages/navigation_page.dart';
 
+// login_page
+import 'package:digital_bank_app/domain/repositories/auth_repository.dart';
+import 'package:digital_bank_app/presentation/cubit/auth/login_cubit.dart';
+import 'package:digital_bank_app/presentation/pages/auth/login_page.dart';
+
 // import thêm
+// settings_page
 import 'domain/repositories/settings_repository.dart';
 import 'presentation/cubit/settings/settings_cubit.dart';
 import 'presentation/cubit/settings/settings_state.dart';
 import 'presentation/pages/settings/settings_page.dart';
 
+// notifications_page
+import 'domain/repositories/notifications_repository.dart';
+import 'presentation/cubit/notifications/notifications_cubit.dart';
+import 'presentation/pages/notifications/notifications_page.dart';
 
 // Mock localization delegate
-class SimpleLocalizationsDelegate extends LocalizationsDelegate<WidgetsLocalizations> {
+class SimpleLocalizationsDelegate
+    extends LocalizationsDelegate<WidgetsLocalizations> {
   const SimpleLocalizationsDelegate();
 
   @override
@@ -47,7 +58,9 @@ void main() async {
         appBar: AppBar(title: const Text('Initialization error')),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(child: Text('DI initialization failed:\n\n${e.toString()}\n\n${st.toString()}')),
+          child: SingleChildScrollView(
+              child: Text(
+                  'DI initialization failed:\n\n${e.toString()}\n\n${st.toString()}')),
         ),
       ),
     ));
@@ -56,6 +69,7 @@ void main() async {
 
   final repo = di.sl<AuthRepository>();
   final settingsRepo = di.sl<SettingsRepository>();
+  final notificationsRepo = di.sl<NotificationsRepository>();
 
   // Surface uncaught Flutter errors on-screen (useful during debug / QA builds)
   ErrorWidget.builder = (FlutterErrorDetails details) {
@@ -65,7 +79,8 @@ void main() async {
         appBar: AppBar(title: const Text('Startup error')),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(child: Text(details.exceptionAsString())),
+          child:
+              SingleChildScrollView(child: Text(details.exceptionAsString())),
         ),
       ),
     );
@@ -78,6 +93,9 @@ void main() async {
         providers: [
           BlocProvider(create: (_) => LoginCubit(repo)),
           BlocProvider(create: (_) => SettingsCubit(settingsRepo)..load()),
+          BlocProvider(
+              create: (_) =>
+                  NotificationsCubit(notificationsRepo)..loadNotifications()),
         ],
         child: const MyApp(),
       ),
@@ -102,7 +120,7 @@ class MyApp extends StatelessWidget {
 
         return MaterialApp(
           title: 'Digital Bank',
-          theme: lightTheme,
+          theme: themeMode == ThemeMode.light ? lightTheme : dartTheme,
           darkTheme: ThemeData.dark(),
           themeMode: themeMode,
           locale: locale,
@@ -122,8 +140,21 @@ class MyApp extends StatelessWidget {
                     value: di.sl<SettingsCubit>(),
                     child: const SettingsPage(key: PageStorageKey('settings')))
                 : BlocProvider(
-                    create: (_) => SettingsCubit(di.sl<SettingsRepository>())..load(),
+                    create: (_) =>
+                        SettingsCubit(di.sl<SettingsRepository>())..load(),
                     child: const SettingsPage(key: PageStorageKey('settings'))),
+            '/notification': (_) => di.sl.isRegistered<NotificationsCubit>()
+                ? BlocProvider.value(
+                    value: di.sl<NotificationsCubit>(),
+                    child: const NotificationsPage(
+                        key: PageStorageKey('notification')))
+                : BlocProvider(
+                    create: (_) =>
+                        NotificationsCubit(di.sl<NotificationsRepository>())
+                          ..loadNotifications(),
+                    child: const NotificationsPage(
+                        key: PageStorageKey('notification')),
+                  ),
           },
         );
       },

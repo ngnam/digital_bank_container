@@ -60,7 +60,11 @@ class _DashboardPageState extends State<DashboardPage> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.notifications, color: Colors.white)),
+          IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed('/notification');
+              },
+              icon: const Icon(Icons.notifications, color: Colors.white)),
         ],
       ),
       // keep content flush with AppBar (top padding 0) so the dark wrapper sits against the AppBar

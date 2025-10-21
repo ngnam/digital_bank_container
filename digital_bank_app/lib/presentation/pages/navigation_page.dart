@@ -3,11 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/di.dart' as di;
 import '../../domain/repositories/account_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/repositories/notifications_repository.dart';
 import '../cubit/navigation_cubit.dart';
 import '../cubit/navigation_state.dart';
 import '../cubit/dashboard/dashboard_cubit.dart';
+import '../cubit/notifications/notifications_cubit.dart';
 import '../cubit/profile/profile_cubit.dart';
 import 'dashboard/dashboard_page.dart';
+import 'notifications/notifications_page.dart';
 import 'profile/profile_page.dart';
 
 class NavigationPage extends StatelessWidget {
@@ -40,7 +43,19 @@ class _NavigationView extends StatelessWidget {
               child: const DashboardPage(key: PageStorageKey('dashboard'))),
       const _AccountsPage(key: PageStorageKey('accounts')),
       const _QrPage(key: PageStorageKey('qrcode')),
-      const _InboxPage(key: PageStorageKey('inbox')),
+      // inbox
+      di.sl.isRegistered<NotificationsCubit>()
+          ? BlocProvider.value(
+              value: di.sl<NotificationsCubit>(),
+              child:
+                  const NotificationsPage(key: PageStorageKey('notification')))
+          : BlocProvider(
+              create: (_) =>
+                  NotificationsCubit(di.sl<NotificationsRepository>())
+                    ..loadNotifications(),
+              child:
+                  const NotificationsPage(key: PageStorageKey('notification')),
+            ),
       // Profile
       di.sl.isRegistered<ProfileCubit>()
           ? BlocProvider.value(
@@ -180,11 +195,11 @@ class _QrPage extends StatelessWidget {
   Widget build(BuildContext context) => const Center(child: Text('Quét QR'));
 }
 
-class _InboxPage extends StatelessWidget {
-  const _InboxPage({Key? key}) : super(key: key);
-  @override
-  Widget build(BuildContext context) => const Center(child: Text('Hộp thư'));
-}
+// class _InboxPage extends StatelessWidget {
+//   const _InboxPage({Key? key}) : super(key: key);
+//   @override
+//   Widget build(BuildContext context) => const Center(child: Text('Hộp thư'));
+// }
 
 // class _ProfilePage extends StatelessWidget {
 //   const _ProfilePage();

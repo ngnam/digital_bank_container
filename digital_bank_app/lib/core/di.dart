@@ -5,9 +5,11 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import '../core/constants.dart';
 import '../data/datasources/remote/account_remote_datasource.dart';
 import '../data/repositories/account_repository_impl.dart';
+import '../data/repositories/notifications_repository_impl.dart';
 import '../data/repositories/settings_repository_impl.dart';
 import '../domain/repositories/account_repository.dart';
 import '../domain/repositories/auth_repository.dart';
+import '../domain/repositories/notifications_repository.dart';
 import '../domain/repositories/settings_repository.dart';
 import '../presentation/cubit/dashboard/dashboard_cubit.dart';
 
@@ -60,8 +62,14 @@ Future<void> init() async {
 
     // Register mock or real SettingsRepository depending on what's already available
     if (!sl.isRegistered<SettingsRepository>()) {
-      // For dev we use MockAuthRepository by default; production can override by calling register
+      // For dev we use Mock SettingsRepository by default; production can override by calling register
       sl.registerLazySingleton<SettingsRepository>(() => SettingsRepositoryImpl());
+    }
+    
+    // Register mock or real NotificationsRepository depending on what's already available
+    if (!sl.isRegistered<NotificationsRepository>()) {
+      // For dev we use Mock NotificationsRepository by default; production can override by calling register
+      sl.registerLazySingleton<NotificationsRepository>(() => NotificationsRepositoryImpl());
     }
 
   } catch (e, st) {
