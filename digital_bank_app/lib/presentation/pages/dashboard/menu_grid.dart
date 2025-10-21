@@ -125,7 +125,16 @@ class _MenuGridState extends State<MenuGrid> {
   Widget _buildMenuItem(IconData icon, String title, bool isNew) {
     return InkWell(
       onTap: () {
-        // TODO: xử lý khi bấm menu
+        switch (title) {
+          case 'Cài đặt chung':
+            Navigator.of(context).pushNamed('/settings');
+            break;
+
+          // TODO: xử lý các menu khác
+
+          default:
+            break;
+        }
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

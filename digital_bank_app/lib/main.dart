@@ -1,6 +1,7 @@
 import 'package:digital_bank_app/domain/repositories/auth_repository.dart';
 import 'package:digital_bank_app/presentation/cubit/auth/login_cubit.dart';
 import 'package:digital_bank_app/presentation/pages/auth/login_page.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +9,29 @@ import 'core/di.dart' as di;
 import 'core/constants.dart';
 import 'core/theme.dart';
 import 'presentation/pages/navigation_page.dart';
+
+// import thêm
+import 'domain/repositories/settings_repository.dart';
+import 'presentation/cubit/settings/settings_cubit.dart';
+import 'presentation/cubit/settings/settings_state.dart';
+import 'presentation/pages/settings/settings_page.dart';
+
+
+// Mock localization delegate
+class SimpleLocalizationsDelegate extends LocalizationsDelegate<WidgetsLocalizations> {
+  const SimpleLocalizationsDelegate();
+
+  @override
+  bool isSupported(Locale locale) => ['vi', 'en'].contains(locale.languageCode);
+
+  @override
+  Future<WidgetsLocalizations> load(Locale locale) async {
+    return const DefaultWidgetsLocalizations();
+  }
+
+  @override
+  bool shouldReload(LocalizationsDelegate<WidgetsLocalizations> old) => false;
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +55,7 @@ void main() async {
   }
 
   final repo = di.sl<AuthRepository>();
+  final settingsRepo = di.sl<SettingsRepository>();
 
   // Surface uncaught Flutter errors on-screen (useful during debug / QA builds)
   ErrorWidget.builder = (FlutterErrorDetails details) {
@@ -49,8 +74,11 @@ void main() async {
   // Also catch any uncaught zone errors and print them (can be expanded to show UI)
   runZonedGuarded(() {
     runApp(
-      BlocProvider(
-        create: (_) => LoginCubit(repo),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => LoginCubit(repo)),
+          BlocProvider(create: (_) => SettingsCubit(settingsRepo)..load()),
+        ],
         child: const MyApp(),
       ),
     );
@@ -67,13 +95,38 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: 'Digital Bank',
-        theme: lightTheme,
-        initialRoute: '/',
-        routes: {
-          '/': (_) => const LoginPage(key: PageStorageKey('login')),
-          '/dashboard': (_) => const NavigationPage(key: PageStorageKey('navigation')),
-        });
+    return BlocBuilder<SettingsCubit, SettingsState>(
+      builder: (context, state) {
+        final themeMode = state.entity.themeMode;
+        final locale = state.entity.language;
+
+        return MaterialApp(
+          title: 'Digital Bank',
+          theme: lightTheme,
+          darkTheme: ThemeData.dark(),
+          themeMode: themeMode,
+          locale: locale,
+          localizationsDelegates: const [
+            SimpleLocalizationsDelegate(),
+            DefaultWidgetsLocalizations.delegate,
+            DefaultMaterialLocalizations.delegate,
+            DefaultCupertinoLocalizations.delegate,
+          ],
+          initialRoute: '/',
+          routes: {
+            '/': (_) => const LoginPage(key: PageStorageKey('login')),
+            '/dashboard': (_) =>
+                const NavigationPage(key: PageStorageKey('navigation')),
+            '/settings': (_) => di.sl.isRegistered<SettingsCubit>()
+                ? BlocProvider.value(
+                    value: di.sl<SettingsCubit>(),
+                    child: const SettingsPage(key: PageStorageKey('settings')))
+                : BlocProvider(
+                    create: (_) => SettingsCubit(di.sl<SettingsRepository>())..load(),
+                    child: const SettingsPage(key: PageStorageKey('settings'))),
+          },
+        );
+      },
+    );
   }
 }
