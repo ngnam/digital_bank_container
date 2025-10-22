@@ -29,7 +29,9 @@ class TransferConfirmPage extends StatelessWidget {
   }) : super(key: key);
 
   Future<void> _confirm(BuildContext context) async {
-    final cubit = context.read<TransferCubit>(); // lấy trước khi await
+    // Lấy cubit và navigator trước khi await
+    final cubit = context.read<TransferCubit>();
+    final navigator = Navigator.of(context);
 
     final otpOk = await showDialog<bool>(
       context: context,
@@ -57,13 +59,13 @@ class TransferConfirmPage extends StatelessWidget {
           content: Text('Mã giao dịch: ${state.transaction.id}'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => navigator.pop(), // dùng navigator đã lưu
               child: const Text('Đóng'),
             ),
           ],
         ),
       );
-      Navigator.of(context).pop(); // đóng màn xác nhận
+      navigator.pop(); // đóng màn xác nhận
     } else if (state is TransferFailure) {
       await showDialog<void>(
         context: context,
@@ -72,11 +74,11 @@ class TransferConfirmPage extends StatelessWidget {
           content: Text(state.message),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => navigator.pop(),
               child: const Text('Đóng'),
             ),
           ],
-        ),d
+        ),
       );
     }
   }
