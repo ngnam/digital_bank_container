@@ -1,0 +1,29 @@
+{
+  "name": "Digital Bank Backend (Spring Boot 3, Java 17, Postgres)",
+
+  // Sử dụng docker-compose để chạy app + Postgres
+  "dockerComposeFile": [
+    "docker-compose.override.yml"
+  ],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-spring-boot-dashboard",
+        "vscjava.vscode-spring-initializr",
+        "pivotal.vscode-spring-boot",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+
+  "forwardPorts": [8080, 5432],
+
+  "postCreateCommand": "chmod +x ./gradlew || true && ./gradlew build -x test",
+
+  "remoteUser": "vscode"
+}
