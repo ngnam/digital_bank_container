@@ -1,12 +1,13 @@
 import '../../domain/entities/account.dart';
+import '../../domain/entities/transaction_entity.dart';
 import '../../domain/repositories/account_repository.dart';
 import '../datasources/remote/account_remote_datasource.dart';
-import '../../domain/entities/transaction.dart';
 
 class AccountRepositoryImpl implements AccountRepository {
   final AccountRemoteDataSource remote;
 
-  AccountRepositoryImpl({AccountRemoteDataSource? remote}) : remote = remote ?? AccountRemoteDataSource();
+  AccountRepositoryImpl({AccountRemoteDataSource? remote})
+      : remote = remote ?? AccountRemoteDataSource();
 
   @override
   Future<List<Account>> getAccounts() async {
@@ -16,8 +17,18 @@ class AccountRepositoryImpl implements AccountRepository {
       return [a];
     } catch (_) {
       return [
-        Account(id: '1', name: 'Tài khoản chính', number: '0123456789', balance: 12500000.5, currency: 'VND'),
-        Account(id: '2', name: 'Tiết kiệm', number: '0987654321', balance: 5000.0, currency: 'USD'),
+        Account(
+            id: '1',
+            name: 'Tài khoản chính',
+            number: '0123456789',
+            balance: 12500000000,
+            currency: 'VND'),
+        Account(
+            id: '2',
+            name: 'Tiết kiệm',
+            number: '0987654321',
+            balance: 500000.0,
+            currency: 'USD'),
       ];
     }
   }
@@ -29,7 +40,8 @@ class AccountRepositoryImpl implements AccountRepository {
       return a.balance;
     } catch (_) {
       final list = await getAccounts();
-      final a = list.firstWhere((e) => e.id == accountId, orElse: () => list.first);
+      final a =
+          list.firstWhere((e) => e.id == accountId, orElse: () => list.first);
       return a.balance;
     }
   }
@@ -42,8 +54,18 @@ class AccountRepositoryImpl implements AccountRepository {
     } catch (_) {
       await Future.delayed(const Duration(milliseconds: 200));
       return [
-        TransactionEntity(id: 't1', accountId: accountId, date: DateTime.now().subtract(const Duration(days: 1)), amount: -150000.0, description: 'Thanh toán hóa đơn'),
-        TransactionEntity(id: 't2', accountId: accountId, date: DateTime.now().subtract(const Duration(days: 3)), amount: 2000000.0, description: 'Chuyển tiền'),
+        TransactionEntity(
+            id: 't1',
+            accountId: accountId,
+            date: DateTime.now().subtract(const Duration(days: 1)),
+            amount: -150000.0,
+            description: 'Thanh toán hóa đơn'),
+        TransactionEntity(
+            id: 't2',
+            accountId: accountId,
+            date: DateTime.now().subtract(const Duration(days: 3)),
+            amount: 2000000.0,
+            description: 'Chuyển tiền'),
       ];
     }
   }

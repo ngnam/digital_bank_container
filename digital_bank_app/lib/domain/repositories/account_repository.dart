@@ -1,6 +1,5 @@
 import '../entities/account.dart';
-
-import '../entities/transaction.dart';
+import '../entities/transaction_entity.dart';
 
 abstract class AccountRepository {
   Future<List<Account>> getAccounts();
