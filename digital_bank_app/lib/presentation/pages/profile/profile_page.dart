@@ -82,6 +82,17 @@ class ProfilePage extends StatelessWidget {
                 onTap: () {},
               ),
             ),
+            // add page cài đặt chung
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.settings),
+                title: const Text('Cài đặt chung'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).pushNamed('/settings');
+                },
+              ),
+            ),
             const SizedBox(height: 12),
             Card(
               color: Colors.white,

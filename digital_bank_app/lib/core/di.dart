@@ -5,8 +5,16 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import '../core/constants.dart';
 import '../data/datasources/remote/account_remote_datasource.dart';
 import '../data/repositories/account_repository_impl.dart';
+import '../data/repositories/notifications_repository_impl.dart';
+import '../data/repositories/settings_repository_impl.dart';
+import '../data/repositories/transaction_repository_imp.dart';
+import '../data/repositories/transfer_repository_impl.dart';
 import '../domain/repositories/account_repository.dart';
 import '../domain/repositories/auth_repository.dart';
+import '../domain/repositories/notifications_repository.dart';
+import '../domain/repositories/settings_repository.dart';
+import '../domain/repositories/transaction_repository.dart';
+import '../domain/repositories/transfer_repository.dart';
 import '../presentation/cubit/dashboard/dashboard_cubit.dart';
 
 /// Optional helper to register DashboardCubit as an application-scoped singleton.
@@ -55,6 +63,31 @@ Future<void> init() async {
       // For dev we use MockAuthRepository by default; production can override by calling register
       sl.registerLazySingleton<AuthRepository>(() => MockAuthRepository());
     }
+
+    // Register mock or real SettingsRepository depending on what's already available
+    if (!sl.isRegistered<SettingsRepository>()) {
+      // For dev we use Mock SettingsRepository by default; production can override by calling register
+      sl.registerLazySingleton<SettingsRepository>(() => SettingsRepositoryImpl());
+    }
+    
+    // Register mock or real NotificationsRepository depending on what's already available
+    if (!sl.isRegistered<NotificationsRepository>()) {
+      // For dev we use Mock NotificationsRepository by default; production can override by calling register
+      sl.registerLazySingleton<NotificationsRepository>(() => NotificationsRepositoryImpl());
+    }
+
+    // Register mock or real TransactionRepository depending on what's already available
+    if (!sl.isRegistered<TransactionRepository>()) {
+      // For dev we use Mock TransactionRepository by default; production can override by calling register
+      sl.registerLazySingleton<TransactionRepository>(() => TransactionRepositoryImpl());
+    }
+
+    // Register mock or real TransferRepository depending on what's already available
+    if (!sl.isRegistered<TransferRepository>()) {
+      // For dev we use Mock TransferRepository by default; production can override by calling register
+      sl.registerLazySingleton<TransferRepository>(() => TransferRepositoryImpl());
+    }
+
   } catch (e, st) {
     // If DI init fails, make sure we log the error and leave the locator in a usable state
     // (do not rethrow to avoid killing runApp). The app's main() has a try/catch to show an error UI.

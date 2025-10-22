@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/java:17
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: digital_bank
+      DB_PASSWORD: digital_bank
+    ports:
+      - "8080:8080"
+
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: digital_bank
+      POSTGRES_PASSWORD: digital_bank
+      POSTGRES_DB: digital_bank
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
