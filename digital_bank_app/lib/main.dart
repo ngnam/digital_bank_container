@@ -27,6 +27,11 @@ import 'domain/repositories/notifications_repository.dart';
 import 'presentation/cubit/notifications/notifications_cubit.dart';
 import 'presentation/pages/notifications/notifications_page.dart';
 
+// transaction_history_page
+import 'domain/repositories/transaction_repository.dart';
+import 'presentation/cubit/transactions/transaction_history_cubit.dart';
+import 'presentation/pages/transactions/transaction_history_page.dart';
+
 // Mock localization delegate
 class SimpleLocalizationsDelegate
     extends LocalizationsDelegate<WidgetsLocalizations> {
@@ -70,6 +75,7 @@ void main() async {
   final repo = di.sl<AuthRepository>();
   final settingsRepo = di.sl<SettingsRepository>();
   final notificationsRepo = di.sl<NotificationsRepository>();
+  final transactionRepo = di.sl<TransactionRepository>();
 
   // Surface uncaught Flutter errors on-screen (useful during debug / QA builds)
   ErrorWidget.builder = (FlutterErrorDetails details) {
@@ -96,6 +102,9 @@ void main() async {
           BlocProvider(
               create: (_) =>
                   NotificationsCubit(notificationsRepo)..loadNotifications()),
+          BlocProvider(
+              create: (_) =>
+                  TransactionHistoryCubit(transactionRepo)..initAndLoad()),
         ],
         child: const MyApp(),
       ),
@@ -154,6 +163,19 @@ class MyApp extends StatelessWidget {
                           ..loadNotifications(),
                     child: const NotificationsPage(
                         key: PageStorageKey('notification')),
+                  ),
+            '/transactions': (_) => di.sl
+                    .isRegistered<TransactionHistoryCubit>()
+                ? BlocProvider.value(
+                    value: di.sl<TransactionHistoryCubit>(),
+                    child: const TransactionHistoryPage(
+                        key: PageStorageKey('transaction_history')))
+                : BlocProvider(
+                    create: (_) =>
+                        TransactionHistoryCubit(di.sl<TransactionRepository>())
+                          ..initAndLoad(),
+                    child: const TransactionHistoryPage(
+                        key: PageStorageKey('transaction_history')),
                   ),
           },
         );

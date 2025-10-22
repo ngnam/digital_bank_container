@@ -130,7 +130,9 @@ class _MenuGridState extends State<MenuGrid> {
             Navigator.of(context).pushNamed('/settings');
             break;
 
-          // TODO: xử lý các menu khác
+          case 'Lịch sử':
+            Navigator.of(context).pushNamed('/transactions');
+            break;
 
           default:
             break;
