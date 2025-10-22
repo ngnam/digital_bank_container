@@ -8,11 +8,13 @@ import '../data/repositories/account_repository_impl.dart';
 import '../data/repositories/notifications_repository_impl.dart';
 import '../data/repositories/settings_repository_impl.dart';
 import '../data/repositories/transaction_repository_imp.dart';
+import '../data/repositories/transfer_repository_impl.dart';
 import '../domain/repositories/account_repository.dart';
 import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/notifications_repository.dart';
 import '../domain/repositories/settings_repository.dart';
 import '../domain/repositories/transaction_repository.dart';
+import '../domain/repositories/transfer_repository.dart';
 import '../presentation/cubit/dashboard/dashboard_cubit.dart';
 
 /// Optional helper to register DashboardCubit as an application-scoped singleton.
@@ -78,6 +80,12 @@ Future<void> init() async {
     if (!sl.isRegistered<TransactionRepository>()) {
       // For dev we use Mock TransactionRepository by default; production can override by calling register
       sl.registerLazySingleton<TransactionRepository>(() => TransactionRepositoryImpl());
+    }
+
+    // Register mock or real TransferRepository depending on what's already available
+    if (!sl.isRegistered<TransferRepository>()) {
+      // For dev we use Mock TransferRepository by default; production can override by calling register
+      sl.registerLazySingleton<TransferRepository>(() => TransferRepositoryImpl());
     }
 
   } catch (e, st) {

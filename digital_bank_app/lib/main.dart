@@ -1,4 +1,5 @@
 // packages
+import 'package:digital_bank_app/domain/repositories/account_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,6 +32,11 @@ import 'presentation/pages/notifications/notifications_page.dart';
 import 'domain/repositories/transaction_repository.dart';
 import 'presentation/cubit/transactions/transaction_history_cubit.dart';
 import 'presentation/pages/transactions/transaction_history_page.dart';
+
+// transaction_history_page
+import 'domain/repositories/transfer_repository.dart';
+import 'presentation/cubit/transfer/transfer_cubit.dart';
+import 'presentation/pages/transfer/transfer_page.dart';
 
 // Mock localization delegate
 class SimpleLocalizationsDelegate
@@ -76,6 +82,8 @@ void main() async {
   final settingsRepo = di.sl<SettingsRepository>();
   final notificationsRepo = di.sl<NotificationsRepository>();
   final transactionRepo = di.sl<TransactionRepository>();
+  final transferRepo = di.sl<TransferRepository>();
+  final accountRepo = di.sl<AccountRepository>();
 
   // Surface uncaught Flutter errors on-screen (useful during debug / QA builds)
   ErrorWidget.builder = (FlutterErrorDetails details) {
@@ -105,6 +113,7 @@ void main() async {
           BlocProvider(
               create: (_) =>
                   TransactionHistoryCubit(transactionRepo)..initAndLoad()),
+          BlocProvider(create: (_) => TransferCubit(transferRepo, accountRepo)),
         ],
         child: const MyApp(),
       ),
@@ -176,6 +185,14 @@ class MyApp extends StatelessWidget {
                           ..initAndLoad(),
                     child: const TransactionHistoryPage(
                         key: PageStorageKey('transaction_history')),
+                  ),
+            '/transfer': (_) => di.sl.isRegistered<TransferCubit>()
+                ? BlocProvider.value(
+                    value: di.sl<TransferCubit>(),
+                    child: const TransferPage(key: PageStorageKey('transfer')))
+                : BlocProvider(
+                    create: (_) => TransferCubit(di.sl<TransferRepository>(), di.sl<AccountRepository>()),
+                    child: const TransferPage(key: PageStorageKey('transfer')),
                   ),
           },
         );

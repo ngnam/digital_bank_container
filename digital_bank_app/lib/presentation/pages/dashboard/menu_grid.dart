@@ -134,6 +134,10 @@ class _MenuGridState extends State<MenuGrid> {
             Navigator.of(context).pushNamed('/transactions');
             break;
 
+          case 'Chuyển tiền':
+            Navigator.of(context).pushNamed('/transfer');
+            break;
+
           default:
             break;
         }

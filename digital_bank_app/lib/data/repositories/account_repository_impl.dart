@@ -21,7 +21,7 @@ class AccountRepositoryImpl implements AccountRepository {
             id: '1',
             name: 'Tài khoản chính',
             number: '0123456789',
-            balance: 12500000000,
+            balance: 10000000,
             currency: 'VND'),
         Account(
             id: '2',
